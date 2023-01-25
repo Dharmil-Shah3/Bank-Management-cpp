@@ -1,0 +1,41 @@
+{
+	"admin": ["bob0033"],
+	"staff": [
+		{
+			"id": "bob0033",
+			"name": "Dharmil Shah",
+			"email": "dharmil.shah@gmail.com",
+			"password": "1234",
+			"salary": 10000
+		},
+		{
+			"id": "bob0045",
+			"name": "Prishita Patel",
+			"email": "prishita.patel@gmail.com",
+			"password": "1234",
+			"salary": 10000
+		},
+		{
+			"id": "bob0012",
+			"name": "Umang Gohel",
+			"email": "umang.gohel@gmail.com",
+			"password": "1234",
+			"salary": 10000
+		}
+	],
+	"account_holder": {
+		"c001": {
+			"name": "Dharmil Shah",
+			"mobile": "9900990099",
+			"address": "Memnagar fire station"
+		}
+	},
+	"account": {
+		"1": {
+			"account_holder_id": "c001",
+			"balance": 10000,
+			"type": "s"
+		}
+	},
+	"last_account_number": 1
+}
