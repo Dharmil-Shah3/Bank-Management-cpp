@@ -1,13 +1,23 @@
 {
     "account": {
         "1": {
-            "account_holder_id": "c001",
-            "balance": 9010,
-            "type": "s"
+            "account_holder_id": 1,
+            "balance": 9100,
+            "type": "Saving"
+        },
+        "2": {
+            "account_holder_id": 1,
+            "balance": 20000,
+            "type": "Current"
+        },
+        "3": {
+            "account_holder_id": 1,
+            "balance": 5000,
+            "type": "Saving"
         }
     },
     "account_holder": {
-        "c001": {
+        "1": {
             "address": "Memnagar fire station",
             "mobile": "9900990099",
             "name": "Dharmil Shah"
@@ -16,7 +26,8 @@
     "admin": [
         "bob0033"
     ],
-    "last_account_number": 1,
+    "last_account_holder_number": 1,
+    "last_account_number": 3,
     "staff": [
         {
             "email": "dharmil.shah@gmail.com",
