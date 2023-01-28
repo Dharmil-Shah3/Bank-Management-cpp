@@ -28,27 +28,24 @@
     ],
     "last_account_holder_number": 1,
     "last_account_number": 3,
-    "staff": [
-        {
+    "staff": {
+        "bob0033": {
             "email": "dharmil.shah@gmail.com",
-            "id": "bob0033",
             "name": "Dharmil Shah",
             "password": "1234",
             "salary": 10000
         },
-        {
+        "bob0045": {
             "email": "prishita.patel@gmail.com",
-            "id": "bob0045",
             "name": "Prishita Patel",
             "password": "1234",
             "salary": 10000
         },
-        {
+        "bob0012": {
             "email": "umang.gohel@gmail.com",
-            "id": "bob0012",
             "name": "Umang Gohel",
             "password": "1234",
             "salary": 10000
         }
-    ]
+    }
 }
