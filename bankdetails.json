@@ -4,16 +4,6 @@
             "account_holder_id": 1,
             "balance": 9100,
             "type": "Saving"
-        },
-        "2": {
-            "account_holder_id": 1,
-            "balance": 20000,
-            "type": "Current"
-        },
-        "3": {
-            "account_holder_id": 1,
-            "balance": 5000,
-            "type": "Saving"
         }
     },
     "account_holder": {
@@ -29,21 +19,33 @@
     "last_account_holder_number": 1,
     "last_account_number": 3,
     "staff": {
-        "bob0033": {
-            "email": "dharmil.shah@gmail.com",
-            "name": "Dharmil Shah",
+        "bob0012": {
+            "address": "Vitthalvadi, Rajkot",
+            "branch_id": 121,
+            "designation": "Cashier",
+            "email": "umang.gohel@gmail.com",
+            "mobile": "8654785698",
+            "name": "Umang Gohel",
             "password": "1234",
+            "salary": 10000
+        },
+        "bob0033": {
+            "address": "Memnagar fire station, Ahmedabad",
+            "branch_id": 14345,
+            "designation": "Branch Manager",
+            "email": "dharmil@gmail.com",
+            "mobile": "4345143453",
+            "name": "Dharmil Shah",
+            "password": "lol",
             "salary": 10000
         },
         "bob0045": {
+            "address": "Copper Residency, Rajkot",
+            "branch_id": 14333,
+            "designation": "Branch manager",
             "email": "prishita.patel@gmail.com",
+            "mobile": "7486846912",
             "name": "Prishita Patel",
-            "password": "1234",
-            "salary": 10000
-        },
-        "bob0012": {
-            "email": "umang.gohel@gmail.com",
-            "name": "Umang Gohel",
             "password": "1234",
             "salary": 10000
         }
