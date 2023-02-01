@@ -22,12 +22,12 @@
         "bob0012": {
             "address": "Vitthalvadi, Rajkot",
             "branch_id": 121,
-            "designation": "Cashier",
+            "designation": "Branch Manager",
             "email": "umang.gohel@gmail.com",
             "mobile": "8654785698",
             "name": "Umang Gohel",
             "password": "1234",
-            "salary": 10000
+            "salary": 20000
         },
         "bob0033": {
             "address": "Memnagar fire station, Ahmedabad",
@@ -45,7 +45,7 @@
             "designation": "Branch manager",
             "email": "prishita.patel@gmail.com",
             "mobile": "7486846912",
-            "name": "Prishita Patel",
+            "name": "Bhopalu",
             "password": "1234",
             "salary": 10000
         }
