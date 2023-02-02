@@ -18,7 +18,7 @@
     ],
     "last_account_holder_number": 1,
     "last_account_number": 1,
-    "last_staff_number": 4,
+    "last_staff_number": 3,
     "staff": {
         "bob0001": {
             "address": "Memnagar fire station, Ahmedabad",
@@ -49,16 +49,6 @@
             "name": "Umang Gohel",
             "password": "1234",
             "salary": 20000
-        },
-        "bob0004": {
-            "address": "Jetpur",
-            "branch_id": 69,
-            "designation": "Cashier",
-            "email": "sdfsdfsdfsdf",
-            "mobile": "9696969696",
-            "name": "Bhargav Trivedi",
-            "password": "1234",
-            "salary": 5000
         }
     }
 }
