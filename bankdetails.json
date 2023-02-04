@@ -14,19 +14,20 @@
         }
     },
     "admin": [
-        "bob0001"
+        "bob0001",
+        "bob0002"
     ],
     "last_account_holder_number": 1,
     "last_account_number": 1,
-    "last_staff_number": 3,
+    "last_staff_number": 4,
     "staff": {
         "bob0001": {
             "address": "Memnagar fire station, Ahmedabad",
             "branch_id": 14345,
             "designation": "Branch Manager",
-            "email": "dharmil@gmail.com",
+            "email": "dharmil.shah@ishitva.in",
             "mobile": "4345143453",
-            "name": "Dharmil Shah",
+            "name": "dharmil shah",
             "password": "lol",
             "salary": 10000
         },
@@ -36,19 +37,29 @@
             "designation": "Branch manager",
             "email": "prishita.patel@gmail.com",
             "mobile": "7486846912",
-            "name": "Bhopalu",
+            "name": "Prishita Patel",
             "password": "4333",
             "salary": 10000
         },
         "bob0003": {
             "address": "Vitthalvadi, Rajkot",
             "branch_id": 121,
-            "designation": "Branch Manager",
+            "designation": "Loan Officer",
             "email": "umang.gohel@gmail.com",
             "mobile": "8654785698",
-            "name": "Umang Gohel",
-            "password": "1234",
+            "name": "umang gohel",
+            "password": "umang",
             "salary": 20000
+        },
+        "bob0004": {
+            "address": "patel nagar, jetpur",
+            "branch_id": 69,
+            "designation": "Loan Officer",
+            "email": "bhargav@streebo.in",
+            "mobile": "8789898989",
+            "name": "bhargav trivedi",
+            "password": "mahadev",
+            "salary": 3500
         }
     }
 }
