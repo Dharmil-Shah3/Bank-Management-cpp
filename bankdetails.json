@@ -2,36 +2,36 @@
     "account": {
         "1": {
             "account_holder_id": 1,
-            "balance": 9100,
+            "balance": 1090,
             "type": "Saving"
         }
     },
     "account_holder": {
         "1": {
-            "address": "Memnagar fire station",
+            "address": "Memnagar fire stNULLation",
             "mobile": "9900990099",
             "name": "Dharmil Shah"
         }
     },
     "admin": [
-        "bob0001",
-        "bob0002"
+        "bank0001",
+        "bank0002"
     ],
     "last_account_holder_number": 1,
     "last_account_number": 1,
     "last_staff_number": 4,
     "staff": {
-        "bob0001": {
+        "bank0001": {
             "address": "Memnagar fire station, Ahmedabad",
             "branch_id": 14345,
             "designation": "Branch Manager",
             "email": "dharmil.shah@ishitva.in",
             "mobile": "4345143453",
             "name": "dharmil shah",
-            "password": "lol",
+            "password": "3452",
             "salary": 10000
         },
-        "bob0002": {
+        "bank0002": {
             "address": "Copper Residency, Rajkot",
             "branch_id": 14333,
             "designation": "Branch manager",
@@ -41,7 +41,7 @@
             "password": "4333",
             "salary": 10000
         },
-        "bob0003": {
+        "bank0003": {
             "address": "Vitthalvadi, Rajkot",
             "branch_id": 121,
             "designation": "Loan Officer",
@@ -51,7 +51,7 @@
             "password": "umang",
             "salary": 20000
         },
-        "bob0004": {
+        "bank0004": {
             "address": "patel nagar, jetpur",
             "branch_id": 69,
             "designation": "Loan Officer",

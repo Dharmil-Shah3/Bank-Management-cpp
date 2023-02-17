@@ -1,0 +1,20 @@
+{
+    "2023": {
+        "2": {
+            "17": {
+                "12341": {
+                    "account_number": 1,
+                    "amount": 10,
+                    "staff_id": "",
+                    "time": {
+                        "hour": "17",
+                        "minute": "31",
+                        "second": "52"
+                    },
+                    "type": "119"
+                }
+            }
+        }
+    },
+    "total_transactions": 12341
+}
