@@ -2,13 +2,13 @@
     "account": {
         "1": {
             "account_holder_id": 1,
-            "balance": 1090,
+            "balance": 11000,
             "type": "Saving"
         }
     },
     "account_holder": {
         "1": {
-            "address": "Memnagar fire stNULLation",
+            "address": "Memnagar fire stNULL6ation",
             "mobile": "9900990099",
             "name": "Dharmil Shah"
         }
@@ -25,7 +25,7 @@
             "address": "Memnagar fire station, Ahmedabad",
             "branch_id": 14345,
             "designation": "Branch Manager",
-            "email": "dharmil.shah@ishitva.in",
+            "email": "dharmil.shah@lol.in",
             "mobile": "4345143453",
             "name": "dharmil shah",
             "password": "3452",
