@@ -464,12 +464,6 @@ bool Admin::isAdmin(string &id){
     return false;
 }
 
-void Admin::test(int limit){
-    for(int i=0; i<limit; i++){
-        cout << i << endl;
-    }
-}
-
 // ------- PRIVATE METHODS -------
 string Admin::selectDesignation(){
     short choice;
@@ -489,6 +483,33 @@ string Admin::selectDesignation(){
             case 5: return "PO";
             default: cout << "\n ERROR: invalid choice enterd..." << endl;
         }
+    }
+}
+
+void Admin::searchStaff(){
+    short choice;
+    string input;
+    cout << "\n ======= SEARCH STAFF BY =======\n" << endl;
+    cout << " 1) Id"<<endl;
+    cout << " 2) Name"<<endl;
+    Util::scanNumber(choice, " Enter choice: ");
+
+    switch (choice) {
+        case 1:
+            cout << "\n Enter Staff id: ";
+            cin.ignore();
+            getline(cin, input);
+            this->searchStaffDetailsById(input);
+            break;
+        case 2:
+            cout << "\n Enter Staff Name: ";
+            cin.ignore();
+            getline(cin, input);
+            this->searchStaffDetailsByName(input);
+            break;
+        default:
+            cout << "\n => Invalid choice !" << endl;
+            choice = -1; // for preventing logout if '0' is pressed
     }
 }
 
@@ -518,30 +539,7 @@ void Admin::displayPanel(){
                 getc(stdin);
                 break;
             case 2: this->updateAccountDetails(); break;
-            case 3:
-                cout << "\n ======= SEARCH STAFF BY =======\n" << endl;
-                cout << " 1) Id"<<endl;
-                cout << " 2) Name"<<endl;
-                Util::scanNumber(choice, " Enter choice: ");
-
-                switch (choice) {
-                    case 1:
-                        cout << "\n Enter Staff id: ";
-                        cin.ignore();
-                        getline(cin, input);
-                        this->searchStaffDetailsById(input);
-                        break;
-                    case 2:
-                        cout << "\n Enter Staff Name: ";
-                        cin.ignore();
-                        getline(cin, input);
-                        this->searchStaffDetailsByName(input);
-                        break;
-                    default:
-                        cout << "\n => Invalid choice !" << endl;
-                        choice = -1; // for preventing logout if '0' is pressed
-                }
-                break;
+            case 3: this->searchStaff(); break;
             case 4:
                 cout << "\n Enter Staff id: ";
                 cin.ignore();
@@ -561,6 +559,7 @@ void Admin::displayPanel(){
 
 void Admin::displayLogsByMonth(){
     unsigned short year, month;
+    cout << "===== Withdraw & Deposite logs by Month =====" << endl;
     Util::scanNumber(year ," => Enter year: ");
     Util::scanNumber(month ," => Enter month: ");
 

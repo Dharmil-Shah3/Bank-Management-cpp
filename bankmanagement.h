@@ -143,8 +143,7 @@ public:
     // static methods
     /**
      * @brief login static method
-     * @fn
-     * validates id password of staff from Json file,
+     * @fn validates id password of staff from Json file,
      * and returns pointer to a Staff object if credentials are correct,
      * else returns NULL.
      * Returns type is pointer to an object because incase of invalid login credentials, we are returning NULL.
@@ -174,6 +173,7 @@ public:
 class Admin : public Staff{
 private:
     std::string selectDesignation(); // to provide designation options for input to addStaff() and updateStaffDetails().
+    void searchStaff();     // gives options to search staff by id and name and handles that operation.
 public:
     // constructors
     Admin(std::string id);

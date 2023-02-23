@@ -78,7 +78,7 @@ void handleBankLogin(short loginChoice){
         }
 
         if(user == NULL || user == nullptr){ // if login credentials are invalid
-            cout << "\n => Invalid Userid and Password...!" << endl;
+            cout << "\n => ERROR: Invalid Userid and Password..." << endl;
             failedLoginCount++;
             continue;   // retry
         }
