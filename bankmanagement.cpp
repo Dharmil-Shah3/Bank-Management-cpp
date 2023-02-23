@@ -95,25 +95,33 @@ bool Util::isAddressValid(string& address){
 }
 
 json Util::readData(const string &key1="", const string &key2=""){
-    ifstream fin(filename);
-    json data = json::parse(fin);
-    fin.close();
+    try {
+        ifstream fin(filename);
+        json data = json::parse(fin);
+        fin.close();
 
-    if(key1 == "") return data;
-    else if(key2 == "") return data[key1];
-    else return data[key1][key2];
+        if(key1 == "") return data;
+        else if(key2 == "") return data[key1];
+        else return data[key1][key2];
+    } catch (exception e) {
+        cout << "\n ERROR: " << e.what() << endl;
+    }
 }
 
 json Util::readLogs(const unsigned short &key1=0, const unsigned short &key2=0, const unsigned short &key3=0, const unsigned long int &key4=0){
-    ifstream fin(logFilename);
-    json data = json::parse(fin);
-    fin.close();
+    try {
+        ifstream fin(logFilename);
+        json data = json::parse(fin);
+        fin.close();
 
-    if(key1 == 0) return data;
-    else if(key2 == 0) return data[to_string(key1)];
-    else if(key3 == 0) return data[to_string(key1)][to_string(key2)];
-    else if(key4 == 0) return data[to_string(key1)][to_string(key2)][to_string(key3)];
-    else return data[to_string(key1)][to_string(key2)][to_string(key3)][to_string(key4)];
+        if(key1 == 0) return data;
+        else if(key2 == 0) return data[to_string(key1)];
+        else if(key3 == 0) return data[to_string(key1)][to_string(key2)];
+        else if(key4 == 0) return data[to_string(key1)][to_string(key2)][to_string(key3)];
+        else return data[to_string(key1)][to_string(key2)][to_string(key3)][to_string(key4)];
+    } catch (exception e) {
+        cout << "\n ERROR: " << e.what() <<endl;
+    }
 }
 
 void Util::writeWithdrawDepositeLog(string &type, const long &bankAccountId, const long &amount, const std::string &staffId = ""){
@@ -148,46 +156,59 @@ void Util::writeWithdrawDepositeLog(string &type, const long &bankAccountId, con
         }
     };
 
-    cout << "\n\n TRANSACTION: " << setw(4) << transaction << endl;
-    ifstream fin(logFilename);
-    json data = json::parse(fin);
-    fin.close();
+    try {
+        ifstream fin(logFilename);
+        json data = json::parse(fin);
+        fin.close();
 
-    // read total transactions
-    long int transactionId = data["total_transactions"];
+        // read total transactions
+        long int transactionId = data["total_transactions"];
 
-    // update total transactions and get transaction id for current transaction
-    data["total_transactions"] = ++transactionId;
+        // update total transactions and get transaction id for current transaction
+        data["total_transactions"] = ++transactionId;
 
-    // update transactionId into json file quickly so other can get proper value of it
-    ofstream fout(logFilename);
-    fout << setw(4) << data << endl;
-    fout.close();
+        // update transactionId into json file quickly so other can get proper value of it
+        ofstream fout(logFilename);
+        fout << setw(4) << data << endl;
+        fout.close();
 
-    // adding new transaction in data
-    data[year][month][day] += json::object_t::value_type(to_string(transactionId), transaction);
+        // adding new transaction in data
+        data[year][month][day] += json::object_t::value_type(to_string(transactionId), transaction);
 
-    // write the transatction object
-    fout.open(logFilename);
-    fout << setw(4) << data << endl;
-    fout.close();
+        // write the transatction object
+        fout.open(logFilename);
+        fout << setw(4) << data << endl;
+        fout.close();
+    } catch (exception e) {
+        cout << "\n ERROR: " << e.what() << endl;
+    }
 }
 
 void Util::updateData(const nlohmann::json &data){
-    ofstream fout(filename);
-    fout << setw(4) << data << endl;
-    fout.close();
+    try {
+        ofstream fout(filename);
+        fout << setw(4) << data << endl;
+        fout.close();
+    } catch (exception e) {
+        cout << "\n ERROR: " << e.what() << endl;
+    }
 }
+
 template <typename T>
 void Util::updateData(const json &data, json &dataToUpdate, const T &newValue){
-    if(dataToUpdate != newValue){
-        ofstream fout(filename);
-        dataToUpdate = newValue;
-        fout << setw(4) << data << endl;
-        cout << "\n => Data is updated successfully !" << endl;
-        fout.close();
+    try {
+        if(dataToUpdate != newValue){
+            ofstream fout(filename);
+            dataToUpdate = newValue;
+            fout << setw(4) << data << endl;
+            cout << "\n => Data is updated successfully !" << endl;
+            fout.close();
+        }
+        // if new and existing values are same
+        else throw "\n ERROR: NO DATA UPDATED, NEW VALUE IS SIMILAR TO EXISTING !";
+    } catch (char *e) {
+        cout << e << endl;
     }
-    else cout << "\n => ERROR: NO DATA UPDATED, NEW VALUE IS SIMILAR TO EXISTING !" << endl;
     getc(stdin);
 }
 // ======================================= END Util ======================================
@@ -600,6 +621,7 @@ void Admin::displayLogsByMonth(){
         }
     }
     cout << "-----------------------------------------------------------------------------------" << endl;
+
     getc(stdin);
 }
 

@@ -1,0 +1,149 @@
+[1mdiff --git a/bankmanagement.cpp b/bankmanagement.cpp[m
+[1mindex 9d5d16c..e935119 100644[m
+[1m--- a/bankmanagement.cpp[m
+[1m+++ b/bankmanagement.cpp[m
+[36m@@ -95,25 +95,33 @@[m [mbool Util::isAddressValid(string& address){[m
+ }[m
+ [m
+ json Util::readData(const string &key1="", const string &key2=""){[m
+[31m-    ifstream fin(filename);[m
+[31m-    json data = json::parse(fin);[m
+[31m-    fin.close();[m
+[32m+[m[32m    try {[m
+[32m+[m[32m        ifstream fin(filename);[m
+[32m+[m[32m        json data = json::parse(fin);[m
+[32m+[m[32m        fin.close();[m
+ [m
+[31m-    if(key1 == "") return data;[m
+[31m-    else if(key2 == "") return data[key1];[m
+[31m-    else return data[key1][key2];[m
+[32m+[m[32m        if(key1 == "") return data;[m
+[32m+[m[32m        else if(key2 == "") return data[key1];[m
+[32m+[m[32m        else return data[key1][key2];[m
+[32m+[m[32m    } catch (exception e) {[m
+[32m+[m[32m        cout << "\n ERROR: " << e.what() << endl;[m
+[32m+[m[32m    }[m
+ }[m
+ [m
+ json Util::readLogs(const unsigned short &key1=0, const unsigned short &key2=0, const unsigned short &key3=0, const unsigned long int &key4=0){[m
+[31m-    ifstream fin(logFilename);[m
+[31m-    json data = json::parse(fin);[m
+[31m-    fin.close();[m
+[31m-[m
+[31m-    if(key1 == 0) return data;[m
+[31m-    else if(key2 == 0) return data[to_string(key1)];[m
+[31m-    else if(key3 == 0) return data[to_string(key1)][to_string(key2)];[m
+[31m-    else if(key4 == 0) return data[to_string(key1)][to_string(key2)][to_string(key3)];[m
+[31m-    else return data[to_string(key1)][to_string(key2)][to_string(key3)][to_string(key4)];[m
+[32m+[m[32m    try {[m
+[32m+[m[32m        ifstream fin(logFilename);[m
+[32m+[m[32m        json data = json::parse(fin);[m
+[32m+[m[32m        fin.close();[m
+[32m+[m
+[32m+[m[32m        if(key1 == 0) return data;[m
+[32m+[m[32m        else if(key2 == 0) return data[to_string(key1)];[m
+[32m+[m[32m        else if(key3 == 0) return data[to_string(key1)][to_string(key2)];[m
+[32m+[m[32m        else if(key4 == 0) return data[to_string(key1)][to_string(key2)][to_string(key3)];[m
+[32m+[m[32m        else return data[to_string(key1)][to_string(key2)][to_string(key3)][to_string(key4)];[m
+[32m+[m[32m    } catch (exception e) {[m
+[32m+[m[32m        cout << "\n ERROR: " << e.what() <<endl;[m
+[32m+[m[32m    }[m
+ }[m
+ [m
+ void Util::writeWithdrawDepositeLog(string &type, const long &bankAccountId, const long &amount, const std::string &staffId = ""){[m
+[36m@@ -148,46 +156,59 @@[m [mvoid Util::writeWithdrawDepositeLog(string &type, const long &bankAccountId, con[m
+         }[m
+     };[m
+ [m
+[31m-    cout << "\n\n TRANSACTION: " << setw(4) << transaction << endl;[m
+[31m-    ifstream fin(logFilename);[m
+[31m-    json data = json::parse(fin);[m
+[31m-    fin.close();[m
+[32m+[m[32m    try {[m
+[32m+[m[32m        ifstream fin(logFilename);[m
+[32m+[m[32m        json data = json::parse(fin);[m
+[32m+[m[32m        fin.close();[m
+ [m
+[31m-    // read total transactions[m
+[31m-    long int transactionId = data["total_transactions"];[m
+[32m+[m[32m        // read total transactions[m
+[32m+[m[32m        long int transactionId = data["total_transactions"];[m
+ [m
+[31m-    // update total transactions and get transaction id for current transaction[m
+[31m-    data["total_transactions"] = ++transactionId;[m
+[32m+[m[32m        // update total transactions and get transaction id for current transaction[m
+[32m+[m[32m        data["total_transactions"] = ++transactionId;[m
+ [m
+[31m-    // update transactionId into json file quickly so other can get proper value of it[m
+[31m-    ofstream fout(logFilename);[m
+[31m-    fout << setw(4) << data << endl;[m
+[31m-    fout.close();[m
+[32m+[m[32m        // update transactionId into json file quickly so other can get proper value of it[m
+[32m+[m[32m        ofstream fout(logFilename);[m
+[32m+[m[32m        fout << setw(4) << data << endl;[m
+[32m+[m[32m        fout.close();[m
+ [m
+[31m-    // adding new transaction in data[m
+[31m-    data[year][month][day] += json::object_t::value_type(to_string(transactionId), transaction);[m
+[32m+[m[32m        // adding new transaction in data[m
+[32m+[m[32m        data[year][month][day] += json::object_t::value_type(to_string(transactionId), transaction);[m
+ [m
+[31m-    // write the transatction object[m
+[31m-    fout.open(logFilename);[m
+[31m-    fout << setw(4) << data << endl;[m
+[31m-    fout.close();[m
+[32m+[m[32m        // write the transatction object[m
+[32m+[m[32m        fout.open(logFilename);[m
+[32m+[m[32m        fout << setw(4) << data << endl;[m
+[32m+[m[32m        fout.close();[m
+[32m+[m[32m    } catch (exception e) {[m
+[32m+[m[32m        cout << "\n ERROR: " << e.what() << endl;[m
+[32m+[m[32m    }[m
+ }[m
+ [m
+ void Util::updateData(const nlohmann::json &data){[m
+[31m-    ofstream fout(filename);[m
+[31m-    fout << setw(4) << data << endl;[m
+[31m-    fout.close();[m
+[31m-}[m
+[31m-template <typename T>[m
+[31m-void Util::updateData(const json &data, json &dataToUpdate, const T &newValue){[m
+[31m-    if(dataToUpdate != newValue){[m
+[32m+[m[32m    try {[m
+         ofstream fout(filename);[m
+[31m-        dataToUpdate = newValue;[m
+         fout << setw(4) << data << endl;[m
+[31m-        cout << "\n => Data is updated successfully !" << endl;[m
+         fout.close();[m
+[32m+[m[32m    } catch (exception e) {[m
+[32m+[m[32m        cout << "\n ERROR: " << e.what() << endl;[m
+[32m+[m[32m    }[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mtemplate <typename T>[m
+[32m+[m[32mvoid Util::updateData(const json &data, json &dataToUpdate, const T &newValue){[m
+[32m+[m[32m    try {[m
+[32m+[m[32m        if(dataToUpdate != newValue){[m
+[32m+[m[32m            ofstream fout(filename);[m
+[32m+[m[32m            dataToUpdate = newValue;[m
+[32m+[m[32m            fout << setw(4) << data << endl;[m
+[32m+[m[32m            cout << "\n => Data is updated successfully !" << endl;[m
+[32m+[m[32m            fout.close();[m
+[32m+[m[32m        }[m
+[32m+[m[32m        // if new and existing values are same[m
+[32m+[m[32m        else throw "\n ERROR: NO DATA UPDATED, NEW VALUE IS SIMILAR TO EXISTING !";[m
+[32m+[m[32m    } catch (char *e) {[m
+[32m+[m[32m        cout << e << endl;[m
+     }[m
+[31m-    else cout << "\n => ERROR: NO DATA UPDATED, NEW VALUE IS SIMILAR TO EXISTING !" << endl;[m
+     getc(stdin);[m
+ }[m
+ // ======================================= END Util ======================================[m
+[36m@@ -600,6 +621,7 @@[m [mvoid Admin::displayLogsByMonth(){[m
+         }[m
+     }[m
+     cout << "-----------------------------------------------------------------------------------" << endl;[m
+[32m+[m
+     getc(stdin);[m
+ }[m
+ [m
