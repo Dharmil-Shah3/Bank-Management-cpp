@@ -29,7 +29,6 @@ void Util::scanNumber(T &input, const string &message){
         }
         break;
     }
-    input = abs(input);
 }
 
 void Util::trim(string &str){
@@ -206,7 +205,7 @@ void Util::updateData(const json &data, json &dataToUpdate, const T &newValue){
         }
         // if new and existing values are same
         else throw "\n ERROR: NO DATA UPDATED, NEW VALUE IS SIMILAR TO EXISTING !";
-    } catch (char *e) {
+    } catch (const char *e) {
         cout << e << endl;
     }
     getc(stdin);
@@ -433,7 +432,10 @@ void Staff::withdraw(){
     try {
         if(acc.getAccountNumber() == 0) return;
         Util::scanNumber(amount, " => Enter amount to Withdraw: Rs.");
+        if(amount < 1) throw amount;
         acc.withdraw(amount ,this->id);
+    } catch(long int amount){
+        cout << "\n ERROR: Negative amount (" << amount << ") is entered..." << endl;
     } catch (exception e) {
         cout << "\n ERROR: " << e.what() << endl;
     }
@@ -447,7 +449,10 @@ void Staff::deposit(){
     try {
         if(acc.getAccountNumber() == 0) return;
         Util::scanNumber(amount, " => Enter amount to Deposite: Rs.");
+        if(amount < 1) throw amount;
         acc.deposit(amount, this->id);
+    } catch (long int amount) {
+        cout << "\n ERROR: Negative amount (" << amount << ") is entered..." << endl;
     } catch (exception e) {
         cout << "\n ERROR: " << e.what() << endl;
     }
@@ -984,7 +989,7 @@ void Account::deposit(const long int &amount, const std::string &staffId=""){
         this->balance += amount;
         cout << "\n => Rs." << amount << " is Credited to account_number " << this->accountNumber << endl
              << " => Current Available balance is Rs." << this->balance << endl;
-    } catch (exception e) {
+    } catch (const exception e) {
         cout << " ERROR: " << e.what() << endl;
     }
 }
@@ -1011,7 +1016,7 @@ AccountHolder::AccountHolder(const long int &accountHolderId){
 }
 
 // ------- STATIC METHODS -------
-void AccountHolder::createAccountHolder(const std::string &name, const std::string &mobile, const std::string &address){}
+//void AccountHolder::createAccountHolder(const std::string &name, const std::string &mobile, const std::string &address){}
 long int AccountHolder::getLastAccountHolderNumber(){ return Util::readData("last_account_holder_number"); }
 
 // ------- GETTER METHODS -------

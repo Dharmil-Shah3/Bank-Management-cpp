@@ -3,7 +3,7 @@
 using namespace std;
 using json = nlohmann::json;
 
-/** @brief LOGIN enum stores numerical data for different login options(Admin, Staff and Account holder) */
+/** @brief LOGIN enum stores numerical data for different login options(Admin, Staff and Account-holder) */
 enum LOGIN{
     ADMIN = 1,
     STAFF = 2,
@@ -82,6 +82,7 @@ void handleBankLogin(short loginChoice){
             failedLoginCount++;
             continue;   // retry
         }
+
         user->displayPanel();   // display panel(staff/admin) on successfull login
         delete user;            // delete pointer before leaving function
         break;                  // because operation is done and user is logged out
