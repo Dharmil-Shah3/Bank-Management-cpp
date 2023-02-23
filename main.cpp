@@ -10,7 +10,7 @@ enum LOGIN{
     ACCOUNT_HOLDER = 3
 };
 
-void handle_staff_and_admin_login(short admin_or_staff);
+void handleBankLogin(short loginChoice);
 
 int main()
 {
@@ -21,39 +21,31 @@ int main()
         cout << "  2) Staff" << endl;
         cout << "  3) Account Holder" << endl;
         cout << "  0) EXIT" << endl;
-        cout << "\n  Enter Choice: ";
-        cin >> choice;
+        Util::scanNumber(choice, "  Enter Choice: ");
 
-        if(!cin){ // handling invalid number input
-            cin.clear();
-            cout <<  "\n  => ERROR: enter numbers only" << endl;
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            choice = 1;
-        }
-        else if (choice == 0) exit(0);
-        else if (choice == 1) handle_staff_and_admin_login(LOGIN::ADMIN);
-        else if (choice == 2) handle_staff_and_admin_login(LOGIN::STAFF);
-        else if (choice == 3) cout << "\n  Work in progress..." << endl;
+        if (choice == 0) exit(0);
+        else if (choice == 1) handleBankLogin(LOGIN::ADMIN);
+        else if (choice == 2) handleBankLogin(LOGIN::STAFF);
+        else if (choice == 3) handleBankLogin(LOGIN::STAFF);
         else cout << "\n  => Enter input in range 0-2" << endl;
     }
     return 0;
 }
 
-void handle_staff_and_admin_login(short admin_or_staff){
+void handleBankLogin(short loginChoice){
     system("clear");
 
     Staff *user = NULL;
     short failedLoginCount = 1;
 
     while(1){
-        failedLoginCount = 1;
+
         while(failedLoginCount > 3){ // if inputs are invalid 3 times
             short choice;
             cout << "\n ========== 3 Failed Login Attempts ==========" << endl;
             cout << "\n 1) Retry" << endl;
             cout << " 0) EXIT" << endl;
-            cout << "\n => Enter choice: ";
-            cin >> choice;
+            Util::scanNumber(choice, " Enter choice: ");
 
             switch (choice) {
                 case 0: system("clear");
@@ -68,17 +60,19 @@ void handle_staff_and_admin_login(short admin_or_staff){
         }
 
         string id, password;
-        cout << "\n----------- "<< (admin_or_staff==1? "ADMIN":"STAFF") <<" LOGIN -----------\n" << endl;
+        cout << "\n----------- "<< (loginChoice==1? "ADMIN":"STAFF") <<" LOGIN -----------\n" << endl;
         cout << " => Enter userid: ";
         cin >> id;
         cout << " => Enter password: ";
         cin >> password;
 
-        if(admin_or_staff == 1){
-            user = Admin::login(id, password);
-        }
-        else{
-            user = Staff::login(id, password);
+
+
+        switch (loginChoice) {
+            case 1: user = Admin::login(id, password); break;
+            case 2: user = Staff::login(id, password); break;
+            case 3: cout << "\n ERROR: work in progress..." << endl; break;
+            default: cout << "\n ERROR: invalid login choice..." << endl;
         }
 
         if(user == NULL || user == nullptr){ // if login credentials are invalid
@@ -86,7 +80,7 @@ void handle_staff_and_admin_login(short admin_or_staff){
             failedLoginCount++;
             continue;   // retry
         }
-        user->displayPanel();   // display panel on successfull login
+        user->displayPanel();   // display panel(staff/admin) on successfull login
         delete user;            // delete pointer before leaving function
         break;                  // because operation is done and user is logged out
     }
