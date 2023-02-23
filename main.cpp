@@ -23,11 +23,13 @@ int main()
         cout << "  0) EXIT" << endl;
         Util::scanNumber(choice, "  Enter Choice: ");
 
-        if (choice == 0) exit(0);
-        else if (choice == 1) handleBankLogin(LOGIN::ADMIN);
-        else if (choice == 2) handleBankLogin(LOGIN::STAFF);
-        else if (choice == 3) handleBankLogin(LOGIN::STAFF);
-        else cout << "\n  => Enter input in range 0-2" << endl;
+        switch (choice) {
+            case 0: exit(0);
+            case 1: handleBankLogin(LOGIN::ADMIN); break;
+            case 2: handleBankLogin(LOGIN::STAFF); break;
+            case 3: handleBankLogin(LOGIN::ACCOUNT_HOLDER); break;
+            default: cout << "\n  => Enter input in range 0-2" << endl;
+        }
     }
     return 0;
 }
@@ -35,7 +37,7 @@ int main()
 void handleBankLogin(short loginChoice){
     system("clear");
 
-    Staff *user = NULL;
+    Staff *user = NULL; // for staff & admin login
     short failedLoginCount = 1;
 
     while(1){
@@ -66,12 +68,12 @@ void handleBankLogin(short loginChoice){
         cout << " => Enter password: ";
         cin >> password;
 
-
-
         switch (loginChoice) {
             case 1: user = Admin::login(id, password); break;
             case 2: user = Staff::login(id, password); break;
-            case 3: cout << "\n ERROR: work in progress..." << endl; break;
+            case 3: cout << "\n ERROR: work in progress..." << endl;
+                delete user;
+                return;
             default: cout << "\n ERROR: invalid login choice..." << endl;
         }
 
