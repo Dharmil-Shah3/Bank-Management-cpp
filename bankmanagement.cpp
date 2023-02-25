@@ -104,6 +104,7 @@ json Util::readData(const string &key1="", const string &key2=""){
         else return data[key1][key2];
     } catch (exception e) {
         cout << "\n ERROR: " << e.what() << endl;
+        return NULL;
     }
 }
 
@@ -120,6 +121,7 @@ json Util::readLogs(const unsigned short &key1=0, const unsigned short &key2=0, 
         else return data[to_string(key1)][to_string(key2)][to_string(key3)][to_string(key4)];
     } catch (exception e) {
         cout << "\n ERROR: " << e.what() <<endl;
+        return NULL;
     }
 }
 
@@ -207,7 +209,10 @@ void Util::updateData(const json &data, json &dataToUpdate, const T &newValue){
         else throw "\n ERROR: NO DATA UPDATED, NEW VALUE IS SIMILAR TO EXISTING !";
     } catch (const char *e) {
         cout << e << endl;
+    } catch (exception e){
+        cout << "\n ERROR: " << e.what() << " in updateData()" << endl;
     }
+
     getc(stdin);
 }
 // ======================================= END Util ======================================
@@ -233,6 +238,12 @@ Staff::Staff(string id){
         this->id = nullptr;
     }
 }
+
+// ------------ CONSTRUCTOR --------------
+Staff::~Staff(){
+    delete this;
+}
+
 
 // -------------- STATIC METHODS --------------
 Staff* Staff::login(string userid, string password){
@@ -436,8 +447,8 @@ void Staff::withdraw(){
         acc.withdraw(amount ,this->id);
     } catch(long int amount){
         cout << "\n ERROR: Negative amount (" << amount << ") is entered..." << endl;
-    } catch (exception e) {
-        cout << "\n ERROR: " << e.what() << endl;
+    } catch (exception e){
+        cout << "\n ERROR: " << e.what() << " in Staff::withdraw()" << endl;
     }
 }
 
@@ -453,8 +464,8 @@ void Staff::deposit(){
         acc.deposit(amount, this->id);
     } catch (long int amount) {
         cout << "\n ERROR: Negative amount (" << amount << ") is entered..." << endl;
-    } catch (exception e) {
-        cout << "\n ERROR: " << e.what() << endl;
+    } catch (exception e){
+        cout << "\n ERROR: " << e.what() << " in Staff::deposit()" << endl;
     }
 }
 // =================================== END STAFF ======================================
@@ -462,6 +473,7 @@ void Staff::deposit(){
 
 
 // ===================================== ADMIN =====================================
+
 // ------- CONSTRUCTOR -------
 Admin::Admin(string adminId) : Staff(adminId){
     // if no admin exist with this id, set id to nullptr
@@ -469,6 +481,11 @@ Admin::Admin(string adminId) : Staff(adminId){
         cout << "\n No Admin found with id \""<< adminId << "\"" << endl;
         this->id = nullptr;
     }
+}
+
+// ------- DESTRUCTOR -------
+Admin::~Admin(){
+    delete this;
 }
 
 // ------- STATIC METHODS -------
@@ -501,6 +518,7 @@ string Admin::selectDesignation(){
              << " 4) Security" << endl
              << " 5) PO" << endl;
         Util::scanNumber(choice, " Enter Designation Choice: ");
+
         switch (choice) {
             case 1: return "Branch Manager";
             case 2: return "Cashier";
@@ -1013,6 +1031,11 @@ AccountHolder::AccountHolder(const long int &accountHolderId){
         this->id = 0;
         cout << "\n ERROR: No Account-Holder found with id " << accountHolderId << " !" << endl;
     }
+}
+
+// ------- DESTRUCTOR -------
+AccountHolder::~AccountHolder(){
+    delete this;
 }
 
 // ------- STATIC METHODS -------

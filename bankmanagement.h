@@ -153,8 +153,9 @@ public:
      */
     static Staff* login(std::string id, std::string password);
 
-    // constructor
+    // constructor & destructor
     Staff(std::string id);
+    virtual ~Staff();
 
     // util methods
     virtual void displayPanel();
@@ -175,8 +176,9 @@ private:
     std::string selectDesignation(); // to provide designation options for input to addStaff() and updateStaffDetails().
     void searchStaff();     // gives options to search staff by id and name and handles that operation.
 public:
-    // constructors
+    // constructor & destructor
     Admin(std::string id);
+    ~Admin();
 
     // static methods
     static Admin* login(std::string userid, std::string password);
@@ -236,8 +238,9 @@ private:
     std::string address;
 
 public:
-    // constructor
+    // constructor & destructor
     AccountHolder(const long int &accountHolderId);
+    ~AccountHolder();
 
     // static methods
     static long int getLastAccountHolderNumber();

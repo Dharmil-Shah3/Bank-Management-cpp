@@ -69,9 +69,9 @@ void handleBankLogin(short loginChoice){
         cin >> password;
 
         switch (loginChoice) {
-            case 1: user = Admin::login(id, password); break;
-            case 2: user = Staff::login(id, password); break;
-            case 3: cout << "\n ERROR: work in progress..." << endl;
+            case LOGIN::ADMIN: user = Admin::login(id, password); break;
+            case LOGIN::STAFF: user = Staff::login(id, password); break;
+            case LOGIN::ACCOUNT_HOLDER: cout << "\n ERROR: work in progress..." << endl;
                 delete user;
                 return;
             default: cout << "\n ERROR: invalid login choice..." << endl;
