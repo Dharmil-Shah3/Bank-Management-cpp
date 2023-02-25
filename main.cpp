@@ -4,13 +4,11 @@ using namespace std;
 using json = nlohmann::json;
 
 /** @brief LOGIN enum stores numerical data for different login options(Admin, Staff and Account-holder) */
-enum LOGIN{
-    ADMIN = 1,
-    STAFF = 2,
-    ACCOUNT_HOLDER = 3
+enum class LOGIN{
+    ADMIN, STAFF, ACCOUNT_HOLDER
 };
 
-void handleBankLogin(short loginChoice);
+void handleBankLogin(const LOGIN);
 
 int main()
 {
@@ -34,7 +32,7 @@ int main()
     return 0;
 }
 
-void handleBankLogin(short loginChoice){
+void handleBankLogin(LOGIN loginChoice){
     system("clear");
 
     Staff *user = NULL; // for staff & admin login
@@ -62,7 +60,7 @@ void handleBankLogin(short loginChoice){
         }
 
         string id, password;
-        cout << "\n----------- "<< (loginChoice==1? "ADMIN":"STAFF") <<" LOGIN -----------\n" << endl;
+        cout << "\n----------- "<< (loginChoice==LOGIN::ADMIN? "ADMIN":"STAFF") <<" LOGIN -----------\n" << endl;
         cout << " => Enter userid: ";
         cin >> id;
         cout << " => Enter password: ";
