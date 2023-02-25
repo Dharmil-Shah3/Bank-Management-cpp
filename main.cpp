@@ -3,13 +3,6 @@
 using namespace std;
 using json = nlohmann::json;
 
-/** @brief LOGIN enum stores numerical data for different login options(Admin, Staff and Account-holder) */
-enum class LOGIN{
-    ADMIN, STAFF, ACCOUNT_HOLDER
-};
-
-void handleBankLogin(const LOGIN);
-
 int main()
 {
     short choice = 1;
@@ -23,66 +16,11 @@ int main()
 
         switch (choice) {
             case 0: exit(0);
-            case 1: handleBankLogin(LOGIN::ADMIN); break;
-            case 2: handleBankLogin(LOGIN::STAFF); break;
-            case 3: handleBankLogin(LOGIN::ACCOUNT_HOLDER); break;
+            case 1: Util::handleBankLogin(BANK_USER_ROLES::ADMIN); break;
+            case 2: Util::handleBankLogin(BANK_USER_ROLES::STAFF); break;
+            case 3: Util:: handleBankLogin(BANK_USER_ROLES::ACCOUNT_HOLDER); break;
             default: cout << "\n  => Enter input in range 0-2" << endl;
         }
     }
     return 0;
-}
-
-void handleBankLogin(LOGIN loginChoice){
-    system("clear");
-
-    Staff *user = NULL; // for staff & admin login
-    short failedLoginCount = 1;
-
-    while(1){
-
-        while(failedLoginCount > 3){ // if inputs are invalid 3 times
-            short choice;
-            cout << "\n ========== 3 Failed Login Attempts ==========" << endl;
-            cout << "\n 1) Retry" << endl;
-            cout << " 0) EXIT" << endl;
-            Util::scanNumber(choice, " Enter choice: ");
-
-            switch (choice) {
-                case 0: system("clear");
-                    delete user;
-                    return;
-                case 1:
-                    failedLoginCount = 1;
-                    break;
-                default:
-                    cout << "\n => Invalid choice !" << endl;
-            }
-        }
-
-        string id, password;
-        cout << "\n----------- "<< (loginChoice==LOGIN::ADMIN? "ADMIN":"STAFF") <<" LOGIN -----------\n" << endl;
-        cout << " => Enter userid: ";
-        cin >> id;
-        cout << " => Enter password: ";
-        cin >> password;
-
-        switch (loginChoice) {
-            case LOGIN::ADMIN: user = Admin::login(id, password); break;
-            case LOGIN::STAFF: user = Staff::login(id, password); break;
-            case LOGIN::ACCOUNT_HOLDER: cout << "\n ERROR: work in progress..." << endl;
-                delete user;
-                return;
-            default: cout << "\n ERROR: invalid login choice..." << endl;
-        }
-
-        if(user == NULL || user == nullptr){ // if login credentials are invalid
-            cout << "\n => ERROR: Invalid Userid and Password..." << endl;
-            failedLoginCount++;
-            continue;   // retry
-        }
-
-        user->displayPanel();   // display panel(staff/admin) on successfull login
-        delete user;            // delete pointer before leaving function
-        break;                  // because operation is done and user is logged out
-    }
 }

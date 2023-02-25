@@ -215,6 +215,63 @@ void Util::updateData(const json &data, json &dataToUpdate, const T &newValue){
 
     getc(stdin);
 }
+
+void Util::handleBankLogin(const BANK_USER_ROLES &role){
+    system("clear");
+
+    Staff *user = NULL; // for staff & admin login
+    short failedLoginCount = 1;
+
+    while(1){
+
+        while(failedLoginCount > 3){ // if inputs are invalid 3 times
+            short choice;
+            cout << "\n ========== 3 Failed Login Attempts ==========" << endl;
+            cout << "\n 1) Retry" << endl;
+            cout << " 0) EXIT" << endl;
+            Util::scanNumber(choice, " Enter choice: ");
+
+            switch (choice) {
+                case 0: system("clear");
+                    delete user;
+                    return;
+                case 1:
+                    failedLoginCount = 1;
+                    break;
+                default:
+                    cout << "\n => Invalid choice !" << endl;
+            }
+        }
+
+        string id, password;
+        cout << "\n----------- "
+             << (role == BANK_USER_ROLES::ADMIN ? "ADMIN": (role == BANK_USER_ROLES::STAFF ? "STAFF": "ACCOUNT HOLDER"))
+             <<" LOGIN -----------\n" << endl;
+        cout << " => Enter userid: ";
+        cin >> id;
+        cout << " => Enter password: ";
+        cin >> password;
+
+        switch (role) {
+            case BANK_USER_ROLES::ADMIN: user = Admin::login(id, password); break;
+            case BANK_USER_ROLES::STAFF: user = Staff::login(id, password); break;
+            case BANK_USER_ROLES::ACCOUNT_HOLDER: cout << "\n ERROR: work in progress..." << endl;
+                delete user;
+                return;
+            default: cout << "\n ERROR: invalid login choice..." << endl;
+        }
+
+        if(user == NULL || user == nullptr){ // if login credentials are invalid
+            cout << "\n => ERROR: Invalid Userid and Password..." << endl;
+            failedLoginCount++;
+            continue;   // retry
+        }
+
+        user->displayPanel();   // display panel(staff/admin) on successfull login
+        delete user;            // delete pointer before leaving function
+        break;                  // because operation is done and user is logged out
+    }
+}
 // ======================================= END Util ======================================
 
 

@@ -10,7 +10,19 @@
 #include <bits/stdc++.h>    // for transform() for lowercase and uppercase strings
 #include <nlohmann/json.hpp>// for working with json.
 
-// ========================= RESOURCE CLASS =========================
+
+// ========================= enum BANK_USER_ROLES CLASS =========================
+/**
+ * @enum BANK_USER_ROLES
+ * @brief stores roles of users of system.
+ * It stores different roles of users for bank management system.
+ * Roles includes Admin, Staff and Account-holder.
+ */
+enum class BANK_USER_ROLES{
+    ADMIN, STAFF, ACCOUNT_HOLDER
+};
+
+// ========================= UTIL CLASS =========================
 class Util{
 private:
     static std::string filename;
@@ -124,6 +136,13 @@ public:
      * @tparam newValue
      */
     static void updateData(const nlohmann::json &data, nlohmann::json &dataToUpdate, const T& newValue);
+
+    /**
+     * @brief handles login operation.
+     * It handles the login operation of the system.
+     * @param role is the member of enum BANK_USER_ROLES that defines login role/option
+     */
+    static void handleBankLogin(const BANK_USER_ROLES &role);
 };
 
 
