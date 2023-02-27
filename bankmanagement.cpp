@@ -192,35 +192,49 @@ void Util::updateData(const nlohmann::json &data){
         fout.open(filename);
         fout << setw(4) << data << endl;
         if(fout.fail()){
-            string error = "FILE OPERATION FAILED !\n ON LINE NUMBER " + to_string(__LINE__) + " IN FILE " + __FILE__;
-            throw error.c_str();
+            string error = "FILE OPERATION FAILED ! DATA IS NOT UPDATED SUCCESSFULLY..."
+                           "\n ON LINE NUMBER " + to_string(__LINE__-1) + " IN FILE " + __FILE__;
+            throw error;
+        } else {
+            cout << "\n => Data is updated successfully..." << endl;
         }
-    } catch (const char* e){
+    } catch (const string &e){ // if any error in file operation
         cout << "\n ERROR: " << e << endl;
     } catch (const exception &e) {
-        cout << "\n ERROR: " << e.what() << endl;
+        cout << "\n ERROR: " << e.what() << " in updateData(json) in bankmanagement.cpp file" << endl;
     }
     fout.close();
+    getc(stdin);
 }
 
 template <typename T>
 void Util::updateData(const json &data, json &dataToUpdate, const T &newValue){
+    ofstream fout;
     try {
         if(dataToUpdate != newValue){
-            ofstream fout(filename);
+            fout.open(filename);
             dataToUpdate = newValue;
             fout << setw(4) << data << endl;
-            cout << "\n => Data is updated successfully !" << endl;
-            fout.close();
+            short lineNumber = __LINE__-1;
+
+            if(fout.fail()){ // if any error in file operation
+                string error = "FILE OPERATION FAILED ! DATA IS NOT UPDATED SUCCESSFULLY..."
+                               "\n ON LINE NUMBER " + to_string(lineNumber) + " IN FILE " + __FILE__;
+                throw error;
+            } else {
+                cout << "\n => Data is updated successfully !" << endl;
+            }
         }
-        // if new and existing values are same
-        else throw "\n ERROR: NO DATA UPDATED, NEW VALUE IS SIMILAR TO EXISTING !";
-    } catch (const char *e) {
-        cout << e << endl;
+        else { // if new and existing values are same
+            string error = "NO DATA UPDATED, NEW VALUE IS SIMILAR TO EXISTING !";
+            throw error;
+        }
+    } catch (const string &e) {
+        cout << "\n ERROR: " << e << endl;
     } catch (const exception &e){
         cout << "\n ERROR: " << e.what() << " in updateData()" << endl;
     }
-
+    fout.close();
     getc(stdin);
 }
 
