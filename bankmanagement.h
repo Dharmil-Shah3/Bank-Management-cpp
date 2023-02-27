@@ -12,15 +12,14 @@
 
 
 // ========================= enum BANK_USER_ROLES CLASS =========================
-/**
+/** ************************************************************
  * @enum BANK_USER_ROLES
  * @brief stores roles of users of system.
  * It stores different roles of users for bank management system.
  * Roles includes Admin, Staff and Account-holder.
- */
-enum class BANK_USER_ROLES{
-    ADMIN, STAFF, ACCOUNT_HOLDER
-};
+ ************************************************************ */
+enum BANK_USER_ROLES{ ADMIN, STAFF, ACCOUNT_HOLDER };
+
 
 // ========================= UTIL CLASS =========================
 class Util{
@@ -65,7 +64,7 @@ public:
      * @brief trims string
      * @param str Leading and Trailing white spaces will be removed from str
      */
-    static void trim(std::string& str);
+    static void trim(std::string &str);
 
     //=================== Log Functions ========================
     static void writeWithdrawDepositeLog(std::string &type, const long int &bankAccountId, const long int &amount, const std::string &staffId);
@@ -128,13 +127,12 @@ public:
      */
     static void updateData(const nlohmann::json &data);
 
-    template<typename T>
     /**
      * @brief updateData
      * @param data
      * @param dataToUpdate
-     * @tparam newValue
      */
+    template<typename T>
     static void updateData(const nlohmann::json &data, nlohmann::json &dataToUpdate, const T& newValue);
 
     /**
@@ -159,26 +157,26 @@ protected:
     long branch_id;
 
 public:
-    // static methods
-    /**
-     * @brief login static method
-     * @fn validates id password of staff from Json file,
-     * and returns pointer to a Staff object if credentials are correct,
-     * else returns NULL.
+    // ---------- constructor & destructor ----------
+    Staff(const std::string &id, const std::string &password);
+    virtual ~Staff(){};
+
+    // ---------- static methods ----------
+    /** *******************************************************************************************************
+     * @brief staff login operation.
+     * validates id password of staff from Json file.
+     * and returns pointer to a Staff object if credentials are correct, else returns NULL.
      * Returns type is pointer to an object because incase of invalid login credentials, we are returning NULL.
-     * @param id of staff to check
-     * @param password of staff to check
-     * @return Pointer of a new Staff object OR NULL
-     */
-    static Staff* login(std::string id, std::string password);
+     * @param id of staff to check.
+     * @param password of staff to check.
+     * @return Pointer of a new Staff object OR NULL.
+     ******************************************************************************************************* */
+    static Staff* login(const std::string &id, const std::string &password);
+    static void displayStaffDetails(const std::string &staffId);
 
-    // constructor & destructor
-    Staff(std::string id);
-    virtual ~Staff();
-
-    // util methods
+    // ---------- normal methods ----------
     virtual void displayPanel();
-    void displayAccountDetails();
+    void displayStaffDetails();
     void updateAccountDetails();
 
     void createBankAccount();
@@ -192,23 +190,21 @@ public:
 // ========================= ADMIN CLASS =========================
 class Admin : public Staff{
 private:
-    std::string selectDesignation(); // to provide designation options for input to addStaff() and updateStaffDetails().
-    void searchStaff();     // gives options to search staff by id and name and handles that operation.
+    std::string selectDesignation(); /// to provide designation options for input to addStaff() and updateStaffDetails().
+    void searchStaff();     /// gives options to search staff by id and name and handles that operation.
 public:
-    // constructor & destructor
-    Admin(std::string id);
-    ~Admin();
+    // ---------- constructor & destructor ----------
+    Admin(const std::string &adminId, const std::string &password);
 
     // static methods
-    static Admin* login(std::string userid, std::string password);
-    static bool isAdmin(std::string& id);
-    static void test(int limit);
+    static Admin* login(const std::string &userid, const std::string &password);
+    static bool isAdmin(const std::string &id);
 
     // util methods
     void displayPanel();
-    void searchStaffDetailsById(std::string);
-    void searchStaffDetailsByName(std::string);
-    void updateStaffDetails(std::string);
+    void searchStaffDetailsById(const std::string &staffId);
+    void searchStaffDetailsByName(std::string &staffName);
+    void updateStaffDetails(const std::string &staffId);
     void addStaff();
     void removeStaff();
     void displayLogsByMonth();
@@ -225,14 +221,14 @@ private:
     std::string type;
 
 public:
+    // ====== constructors ======
+    Account(long int accountNumber);
+
     // ====== static methods ======
     static long int getLastAccountNumber();
     static void displayAccountDetails(const long int &accountNumber);
     static Account createNewAccount(const long int &accountHolderId, const long int &balance, const std::string &type);
     static void removeAccount(const long int &accountNumber, const std::string &staffId);
-
-    // ====== constructors ======
-    Account(long int accountNumber);
 
     // ====== getter methods ======
     long int getAccountNumber();
@@ -259,7 +255,6 @@ private:
 public:
     // constructor & destructor
     AccountHolder(const long int &accountHolderId);
-    ~AccountHolder();
 
     // static methods
     static long int getLastAccountHolderNumber();
