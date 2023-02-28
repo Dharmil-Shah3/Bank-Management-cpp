@@ -9,7 +9,9 @@
 #include <regex>            // for pattern matching and validation
 #include <bits/stdc++.h>    // for transform() for lowercase and uppercase strings
 #include <nlohmann/json.hpp>// for working with json.
-
+#include <termios.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 // ========================= enum BANK_USER_ROLES CLASS =========================
 /** ************************************************************
@@ -38,6 +40,14 @@ private:
 
 public:
     virtual void pure_virtual_function_to_prevent_object_making_of_this_class() = 0;
+
+    /** ****************************************************************************
+     * @brief kbhit(keyboard hit) checks if any key is pressed from keyboard or not.
+     * This function is basically used to exit or break from infinite loops.
+     * Loop will be executed until user press any key.
+     * @returns 1 if any key is pressed, else returns 0.
+     * ****************************************************************************/
+    static int kbhit(void);
 
     /** *************************************
      * @brief returns data file(json) name
@@ -114,7 +124,7 @@ public:
      * ***************************************************************************************/
     static bool isAddressValid(std::string &address);
 
-    //=================== generalized read function to read data from JSON file ===================
+    //======================== functions to read data from JSON file ========================
     /** ****************************************************************************************
      * @brief reads data from json file.
      * @param key1 to get specified object. Default value is "".
@@ -136,7 +146,7 @@ public:
                                    const unsigned short &key3=0,
                                    const unsigned long int &key4=0);
 
-    // ============= generalized update function that writes the new_data into the file =============
+    // ===================== functions that writes the new_data into the file =====================
     /** **********************************************
      * @brief overwrites the given data into json file.
      * @param json data to be written into json file.

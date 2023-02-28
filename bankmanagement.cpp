@@ -91,6 +91,30 @@ bool Util::isAddressValid(string& address){
     return false;
 }
 
+int Util::kbhit(void){
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
+
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+    ch = getchar();
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+    if(ch != EOF){
+        ungetc(ch, stdin);
+        return 1;
+    }
+    return 0;
+}
+
 json Util::readData(const string &key1, const string &key2){
     /// @todo make an array of parameters [].
     try {
@@ -115,7 +139,8 @@ json Util::readData(const string &key1, const string &key2){
     return NULL;
 }
 
-json Util::readLogs(const unsigned short &key1, const unsigned short &key2, const unsigned short &key3, const unsigned long int &key4){
+json Util::readLogs(const unsigned short &key1, const unsigned short &key2,
+                    const unsigned short &key3, const unsigned long int &key4){
     try {
         ifstream fin(logFilename);
         if(!fin){ // if file is not opened
@@ -139,7 +164,10 @@ json Util::readLogs(const unsigned short &key1, const unsigned short &key2, cons
     return NULL;
 }
 
-void Util::writeWithdrawDepositeLog(const BANK_LOG_TYPE &type, const long &bankAccountId, const long &amount, const std::string &staffId = ""){
+void Util::writeWithdrawDepositeLog(const BANK_LOG_TYPES &type,
+                                    const long &bankAccountId,
+                                    const long &amount,
+                                    const std::string &staffId = ""){
 
     try {
         if(type != WITHDRAW && type != DEPOSIT){
@@ -195,8 +223,11 @@ void Util::writeWithdrawDepositeLog(const BANK_LOG_TYPE &type, const long &bankA
         fout << setw(4) << data << endl;
         fout.close();
 
+        ostringstream temp;
+        temp << setw(8) << setfill('0') << to_string(transactionId);
+
         // adding new transaction in data
-        data[year][month][day] += json::object_t::value_type(to_string(transactionId), transaction);
+        data[year][month][day] += json::object_t::value_type(temp.str(), transaction);
 
         // write the transatction object
         fout.open(logFilename);
@@ -724,59 +755,72 @@ void Admin::displayLogsByMonth(){
     json logs;
     unsigned short year, month;
 
+    // getting the year and month from user to display logs of that month
     system("clear");
     cout << "===== Withdraw & Deposite logs by Month =====" << endl
          << "\n [ Enter 0 for current month ]" << endl;
     Util::scanNumber(year ," Enter year: ");
 
-    if(year == 0){ // if current month is selected
-        logs = Util::readLogs();
-    } else {
+    // if year == 0, means current year and month should be considered
+    if(year == 0){
+        //get the current year and month using time_t
+        time_t now = time(0);
+        tm *currentTime = localtime(&now);
+        year = currentTime->tm_year + 1900;
+        month = currentTime->tm_mon + 1;
+    } else { // get the specific month from user
         Util::scanNumber(month ," Enter month: ");
+    }
+
+    /*
+     * getchar() is called here to clear the input stream for kbhit() used in next looping statement.
+     * kbhit() checks for the keypress
+     */
+    getchar();
+
+    while(! Util::kbhit()){ // showing logs until any key is pressed from keyboard
+        system("clear");
+
         logs = Util::readLogs(year, month);
-    }
-
-
-    logs = Util::readLogs(year, month);
-
-    if(logs.empty()){
-        cout << "\n No logs found for "<<year<<"/"<<month << endl;
-        getc(stdin);
-        return;
-    }
-
-    system("clear");
-    cout << "\n=-=-=-=-=-=-=-=-=-=-=-=-= Logs of "<<year<<"/"<<month<<" =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
-    cout << "\n| Trans_Id |   Desc   | Bank Account Id | Amount(Rs) | Staff id | Date |   Time   |" << endl
-         << "-----------------------------------------------------------------------------------" << endl;
-
-    string day, type, staffId;
-    cout.setf(ios::left);
-
-    for(auto &date: logs.items()){
-        day = date.key();
-        for(auto &transaction: date.value().items()){
-            json value = transaction.value();
-            type = to_string(value["type"]);
-            type = type.substr(1, type.length()-2);
-            staffId = to_string(transaction.value()["staff_id"]);
-
-            staffId = staffId == "\"\""? "": staffId.substr(1,8);
-
-            cout << "| " << setw(8) << transaction.key() << " "
-                 << "| " << setw(8) << type << " "
-                 << "| " << setw(15) << to_string(value["account_number"]) << " "
-                 << "| " << setw(10) << to_string(value["amount"]) << " "
-                 << "| " << setw(8) << staffId << " "
-                 << "|  " << setw(2) << setfill('0') << day << "  "
-                 << "| " << setw(2) << to_string(value["time"]["hour"])
-                 << ":" << setw(2) << to_string(value["time"]["minute"])
-                 << ":" << setw(2) << to_string(value["time"]["second"]) << " |" << setfill(' ')<< endl;
+        if(logs.empty()){
+            cout << "\n NO LOGS FOUND FOR "<<year<<"/"<<month << endl;
+            return;
         }
+
+        cout << "\n=-=-=-=-=-=-=-=-=-=-=-=-= Logs of "<<year<<"/"<<month<<" =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
+        cout << "\n| Trans_Id |   Desc   | Bank Account Id | Amount(Rs) | Staff id | Date |   Time   |" << endl
+             << "-----------------------------------------------------------------------------------" << endl;
+
+
+        string day, transactionType, staffId;
+
+        for(auto &date: logs.items()){
+            day = date.key();
+            for(auto &transaction: date.value().items()){
+                json value = transaction.value();
+                transactionType = to_string(value["type"]);
+                transactionType = transactionType.substr(1, transactionType.length()-2);
+                staffId = to_string(transaction.value()["staff_id"]);
+                int lastIndexOfZero = transaction.key().find_first_not_of('0');
+                string transactionId = transaction.key().substr(lastIndexOfZero);
+
+                staffId = staffId == "\"\""? "": staffId.substr(1,8);
+
+                cout << "| " << setw(8) << transactionId << " "
+                     << "| " << setw(8) << transactionType << " "
+                     << "| " << setw(15) << to_string(value["account_number"]) << " "
+                     << "| " << setw(10) << to_string(value["amount"]) << " "
+                     << "| " << setw(8) << staffId << " "
+                     << "|  " << setw(2) << setfill('0') << day << "  "
+                     << "| " << setw(2) << to_string(value["time"]["hour"])
+                     << ":" << setw(2) << to_string(value["time"]["minute"])
+                     << ":" << setw(2) << to_string(value["time"]["second"]) << " |" << setfill(' ')<< endl;
+            }
+        }
+        cout << "-----------------------------------------------------------------------------------" << endl
+             << "\n=> Press any key to exit..." << endl;
+        sleep(1);
     }
-    cout << "-----------------------------------------------------------------------------------" << endl;
-    cout.unsetf(ios::left);
-    getc(stdin);
 }
 
 void Admin::searchStaffDetailsByName(string &staffName){
@@ -1117,7 +1161,7 @@ void Account::withdraw(const long int &amount, const std::string &staffId=""){
 
         // writing log of the transaction
         string type = "withdraw";
-        Util::writeWithdrawDepositeLog(BANK_LOG_TYPE::WITHDRAW, this->accountNumber, amount, staffId);
+        Util::writeWithdrawDepositeLog(BANK_LOG_TYPES::WITHDRAW, this->accountNumber, amount, staffId);
 
         this->balance -= amount;
         cout << "\n => Rs." << amount << " is Debited from account_number " << this->accountNumber << endl
@@ -1136,7 +1180,7 @@ void Account::deposit(const long int &amount, const std::string &staffId=""){
         // Wrtiting updated data into json file
         Util::updateData(data);
         string type = "deposit";
-        Util::writeWithdrawDepositeLog(BANK_LOG_TYPE::DEPOSIT, this->accountNumber, amount, staffId);
+        Util::writeWithdrawDepositeLog(BANK_LOG_TYPES::DEPOSIT, this->accountNumber, amount, staffId);
 
         this->balance += amount;
         cout << "\n => Rs." << amount << " is Credited to account_number " << this->accountNumber << endl
