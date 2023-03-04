@@ -28,10 +28,24 @@ enum BANK_USER_ROLES{ ADMIN, STAFF, ACCOUNT_HOLDER };
  * It stores different log types used in the program.
  * It includes withdraw, deposit, account create, account delete etc...
  ******************************************************************* */
-enum BANK_LOG_TYPES{ WITHDRAW, DEPOSIT, STAFF_ADD, STAFF_REMOVE, BANK_ACC_ADD, BANK_ACC_REMOVE };
+enum BANK_LOG_TYPES{ WITHDRAW, DEPOSIT, ADD_STAFF, REMOVE_STAFF, ADD_BANK_ACC, REMOVE_BANK_ACC };
 
-// ========================= UTIL CLASS =========================
-class Util{
+/** ************************************************************
+ * @enum ERROR_BANK_ACCOUNT
+ * @brief Types of error related to class Account(bank account).
+ * ************************************************************/
+enum ERROR_BANK_ACCOUNT{ ACCOUNT_NOT_FOUND, INSUFFICIENT_BALANCE };
+
+/** ****************************************************
+ * @enum ERROR_ACCOUNT_HOLDER
+ * @brief Types of error related to class AccountHolder.
+ * ****************************************************/
+enum ERROR_ACCOUNT_HOLDER{ USER_NOT_FOUND };
+
+enum ERROR_STAFF{ STAFF_NOT_FOUND, INVALID_PASSWORD, NOT_AN_ADMIN };
+
+// ========================= UTILS CLASS =========================
+class Utils{
 private:
     /** @brief filename stores the name of the user data json file. */
     const static std::string filename;
@@ -72,12 +86,20 @@ public:
     template <typename T>
     static void scanNumber(T &input, const std::string &message);
 
-    /** ****************************************************************************
-     * @brief trims string
+    /** ************************************************************************************
+     * @brief trims string byb given characters.
      * Trims all leading and trailing spaces and space characters from given string.
      * @param str data from which the trimming will be done.
-     **************************************************************************** */
-    static void trim(std::string &str);
+     * @param charactersToRemove is the list of characters that would be trimed from string
+     * Default value is all the whitespace chatacters
+     ************************************************************************************ */
+    static const char* trim(std::string &str, const std::string &charactersToRemove=" \t\n\r\f\v");
+
+    /** *********************************************************************************
+     * @brief removeQutes trims leading and trailing double quotes from the given string
+     * @param str data from which qutoes wiil be removed
+     * *********************************************************************************/
+    static void removeQutes(std::string &str);
 
     //=================== Log Functions ========================
     /** *********************************************************************************************************
@@ -207,6 +229,7 @@ public:
     void displayStaffDetails();
     void updateAccountDetails();
 
+    long int createAccountHolder();
     void createBankAccount();
     void removeBankAccount();
     void displayBankAccountDetails();
@@ -285,19 +308,13 @@ public:
     AccountHolder(const long int &accountHolderId);
 
     // static methods
-    static long int getLastAccountHolderNumber();
-    static void createAccountHolder(const std::string &name, const std::string &mobile, const std::string &address);
+    static long int createAccountHolder(const std::string &name, const std::string &mobile, const std::string &address);
 
     // getter methods
     long int getId();
     std::string getName();
     std::string getAddress();
     std::string getMobile();
-
-    // setter methods
-    void setName(const std::string &name);
-    void setAddress(const std::string &address);
-    void setMobile(const std::string &mobile);
 
     // util methods
     void displayAccountHolderPanel();

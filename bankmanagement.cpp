@@ -4,17 +4,17 @@ using namespace std;
 using json = nlohmann::json;
 
 
-// ===================================== Util =====================================
+// ===================================== Utils =====================================
 // ------- STATIC DATA -------
-const string Util::filename = "bankdetails.json";
-const string Util::logFilename = "banklogs.json";
+const string Utils::filename = "bankdetails.json";
+const string Utils::logFilename = "banklogs.json";
 
 // ------- STATIC METHODS -------
-string Util::getFileName(){ return filename; }
-string Util::getLogFileName(){ return logFilename; }
+string Utils::getFileName(){ return filename; }
+string Utils::getLogFileName(){ return logFilename; }
 
 template <typename T>
-void Util::scanNumber(T &input, const string &message){
+void Utils::scanNumber(T &input, const string &message){
     while(1){
         cout << endl << message;
         cin >> input;
@@ -29,13 +29,15 @@ void Util::scanNumber(T &input, const string &message){
     }
 }
 
-void Util::trim(string &str){
-    const char* typeOfWhitespaces = " \t\n\r\f\v";
-    str.erase(str.find_last_not_of(typeOfWhitespaces) + 1);
-    str.erase(0, str.find_first_not_of(typeOfWhitespaces));
+const char* Utils::trim(string &str, const string &characterstoRemove)
+{
+    str.erase(str.find_last_not_of(characterstoRemove) + 1);
+    str.erase(0, str.find_first_not_of(characterstoRemove));
+    return str.c_str();
 }
 
-bool Util::isNameValid(string& name){
+bool Utils::isNameValid(string& name)
+{
     // converting string into lowercase
     transform(name.begin(), name.end(), name.begin(), ::tolower);
     trim(name);
@@ -43,22 +45,24 @@ bool Util::isNameValid(string& name){
     if(regex_search(name, pattern))
         return true;
     cout << "\n => ERROR: name must contain alphabets only"
-         << "\n -> valid name examples: [ram], [ram charan]" << endl;
+         << "\n => Valid name examples: [ram], [ram charan]" << endl;
     getc(stdin);
     return false;
 }
-bool Util::isPasswordValid(string& password){
+bool Utils::isPasswordValid(string& password)
+{
     trim(password);
     regex pattern{"^[a-zA-Z0-9!@#$_]{4,20}$"};
     if(regex_search(password, pattern))
         return true;
     cout << "\n => ERROR: invalid characters or length in password"
          << "\n -> valid characters are alphabets, numbers, !, @, #, $, _ (underscore)"
-         << "\n -> length must be betweeen 4 to 20" << endl;
+         << "\n -> length must be betweeen 4 to 20 characters" << endl;
     getc(stdin);
     return false;
 }
-bool Util::isEmailValid(string& email){
+bool Utils::isEmailValid(string& email)
+{
     trim(email);
     transform(email.begin(), email.end(), email.begin(), ::tolower);
     regex pattern{"^[a-z][a-z0-9._]{2,20}@[a-z]{3,15}.[a-z]{2,4}$"};
@@ -68,7 +72,8 @@ bool Util::isEmailValid(string& email){
     getc(stdin);
     return false;
 }
-bool Util::isMobileValid(string& mobile){
+bool Utils::isMobileValid(string& mobile)
+{
     trim(mobile);
     regex pattern{"^[\\d]{10}$"};
     if(regex_search(mobile, pattern))
@@ -79,7 +84,8 @@ bool Util::isMobileValid(string& mobile){
     getc(stdin);
     return false;
 }
-bool Util::isAddressValid(string& address){
+bool Utils::isAddressValid(string& address)
+{
     trim(address);
     transform(address.begin(), address.end(), address.begin(), ::tolower);
     regex pattern{"^[a-z0-9][ a-z0-9/,\\-]{10,50}$"};
@@ -91,7 +97,8 @@ bool Util::isAddressValid(string& address){
     return false;
 }
 
-int Util::kbhit(void){
+int Utils::kbhit(void)
+{
     struct termios oldt, newt;
     int ch;
     int oldf;
@@ -115,11 +122,12 @@ int Util::kbhit(void){
     return 0;
 }
 
-json Util::readData(const string &key1, const string &key2){
+json Utils::readData(const string &key1, const string &key2)
+{
     /// @todo make an array of parameters [].
     try {
         ifstream fin(filename);
-        if(!fin){ // if file is not opened
+        if(!fin || fin.fail()){ // if file is not opened
             string error = "error in opening the file " + filename + " for reading,"
                          + " on line number " + to_string(__LINE__-3) + " in " __FILE__;
             throw error;
@@ -139,8 +147,9 @@ json Util::readData(const string &key1, const string &key2){
     return NULL;
 }
 
-json Util::readLogs(const unsigned short &key1, const unsigned short &key2,
-                    const unsigned short &key3, const unsigned long int &key4){
+json Utils::readLogs(const unsigned short &key1, const unsigned short &key2,
+                     const unsigned short &key3, const unsigned long int &key4)
+{
     try {
         ifstream fin(logFilename);
         if(!fin){ // if file is not opened
@@ -164,11 +173,11 @@ json Util::readLogs(const unsigned short &key1, const unsigned short &key2,
     return NULL;
 }
 
-void Util::writeWithdrawDepositeLog(const BANK_LOG_TYPES &type,
-                                    const long &bankAccountId,
-                                    const long &amount,
-                                    const std::string &staffId = ""){
-
+void Utils::writeWithdrawDepositeLog(const BANK_LOG_TYPES &type,
+                                     const long &bankAccountId,
+                                     const long &amount,
+                                     const std::string &staffId = "")
+{
     try {
         if(type != WITHDRAW && type != DEPOSIT){
             throw string("INVALID LOG TYPE PASSED AS PARAMETER IN FUNCTION writeWithdrawDepositLog() IN bankmanagement.cpp");
@@ -210,6 +219,7 @@ void Util::writeWithdrawDepositeLog(const BANK_LOG_TYPES &type,
         transactionId = 0;
         data = json::parse(fin);
 
+        /// @todo fix bug
         if(fin){ // if file exists, then read transactionId from file
             transactionId = data["total_transactions"];
         }
@@ -223,28 +233,32 @@ void Util::writeWithdrawDepositeLog(const BANK_LOG_TYPES &type,
         fout << setw(4) << data << endl;
         fout.close();
 
-        ostringstream temp;
-        temp << setw(8) << setfill('0') << to_string(transactionId);
+        // making treansaction id with leading 0s.
+        ostringstream transactionIdWithLeadindZeors;
+        transactionIdWithLeadindZeors << setw(8) << setfill('0') << to_string(transactionId);
 
         // adding new transaction in data
-        data[year][month][day] += json::object_t::value_type(temp.str(), transaction);
+        data[year][month][day] += json::object_t::value_type(transactionIdWithLeadindZeors.str(), transaction);
 
         // write the transatction object
         fout.open(logFilename);
         fout << setw(4) << data << endl;
         fout.close();
-    } catch (const string &error){
+    }
+    catch (const string &error){
         cout << "\n ERROR: " << error << endl;
-    } catch (const exception &error) {
+    }
+    catch (const exception &error) {
         cout << "\n ERROR: " << error.what() << endl;
     }
 }
 
-void Util::updateData(const nlohmann::json &data){
+void Utils::updateData(const nlohmann::json &data)
+{
     ofstream fout;
     try {
         fout.open(filename);
-        fout << setw(4) << data << endl;
+        fout << setw(4) << data << flush;
         if(fout.fail()){
             string error = "FILE OPERATION FAILED ! DATA IS NOT UPDATED SUCCESSFULLY..."
                            "\n ON LINE NUMBER " + to_string(__LINE__-1) + " IN FILE " + __FILE__;
@@ -262,14 +276,15 @@ void Util::updateData(const nlohmann::json &data){
 }
 
 template <typename T>
-void Util::updateData(const json &data, json &dataToUpdate, const T &newValue){
+void Utils::updateData(const json &data, json &dataToUpdate, const T &newValue)
+{
     ofstream fout;
     try {
         if(dataToUpdate != newValue){
             fout.open(filename);
             dataToUpdate = newValue;
-            fout << setw(4) << data << endl;
-            short lineNumber = __LINE__-1;
+            fout << setw(4) << data << flush;
+            short lineNumber = __LINE__-1; // just to show linenumber in exception
 
             if(fout.fail()){ // if any error in file operation
                 string error = "FILE OPERATION FAILED ! DATA IS NOT UPDATED SUCCESSFULLY..."
@@ -292,21 +307,21 @@ void Util::updateData(const json &data, json &dataToUpdate, const T &newValue){
     getc(stdin);
 }
 
-void Util::handleBankLogin(const BANK_USER_ROLES &role){
+void Utils::handleBankLogin(const BANK_USER_ROLES &role)
+{
     system("clear");
 
     Staff *user = NULL; // for staff & admin login
     short failedLoginCount = 1;
 
     while(1){
-
         // if inputs are invalid 3 times
         while(failedLoginCount > 3){
             short choice;
             cout << "\n ========== 3 Failed Login Attempts ==========" << endl;
             cout << "\n 1) Retry" << endl;
             cout << " 0) EXIT" << endl;
-            Util::scanNumber(choice, " Enter choice: ");
+            Utils::scanNumber(choice, " Enter choice: ");
 
             switch (choice) {
                 case 0: system("clear");
@@ -320,18 +335,19 @@ void Util::handleBankLogin(const BANK_USER_ROLES &role){
             }
         }
 
-        string id, password;
+        string userid, password;
         cout << "\n----------- "
              << (role == BANK_USER_ROLES::ADMIN ? "ADMIN": (role == BANK_USER_ROLES::STAFF ? "STAFF": "ACCOUNT HOLDER"))
              <<" LOGIN -----------\n" << endl;
+
         cout << " => Enter userid: ";
-        cin >> id;
+        cin >> userid;
         cout << " => Enter password: ";
         cin >> password;
 
         switch (role) {
-            case BANK_USER_ROLES::ADMIN: user = Admin::login(id, password); break;
-            case BANK_USER_ROLES::STAFF: user = Staff::login(id, password); break;
+            case BANK_USER_ROLES::ADMIN: user = Admin::login(userid, password); break;
+            case BANK_USER_ROLES::STAFF: user = Staff::login(userid, password); break;
             case BANK_USER_ROLES::ACCOUNT_HOLDER: cout << "\n ERROR: work in progress..." << endl;
                 delete user;
                 return;
@@ -348,61 +364,76 @@ void Util::handleBankLogin(const BANK_USER_ROLES &role){
         break;                  // because operation is done and user is logged out
     }
 }
-// ======================================= END Util ======================================
+// ======================================= END Utils ======================================
 
 
 
 // ===================================== STAFF =====================================
 
 // ------------ CONSTRUCTOR & DESTRUCTOR --------------
-Staff::Staff(const string &id, const string &password){
-    json staff = Util::readData("staff");
+Staff::Staff(const string &id, const string &password)
+{
+    json staff = Utils::readData("staff");
+    if (staff.contains(id)){ // staff found
+        if(staff[id]["password"] != password){ // invalid password
+            throw ERROR_STAFF::INVALID_PASSWORD;
+        }
+        string name = staff[id]["name"];
+        string designation = staff[id]["designation"];
+        string mobile = staff[id]["mobile"];
+        string address = staff[id]["address"];
+        string email = staff[id]["email"];
 
-    if (staff.contains(id) && staff[id]["password"]==password){
         this->id = id;
-        this->name = staff[id]["name"];
-        this->designation = staff[id]["designation"];
+        this->name = Utils::trim(name, "\"");
+        this->designation = Utils::trim(designation, "\"");
         this->branch_id = staff[id]["branch_id"];
-        this->mobile = staff[id]["mobile"];
-        this->email = staff[id]["email"];
-        this->address = staff[id]["address"];
+        this->mobile = Utils::trim(mobile, "\"");
+        this->email = Utils::trim(email, "\"");
+        this->address = Utils::trim(address, "\"");
         this->salary = staff[id]["salary"];
     } else {
-        this->id = "";
-        cout << "\n ERROR: NO STAFF MEMBER FOUND WITH ID \""<< id << "\"" << endl;
+        throw ERROR_STAFF::STAFF_NOT_FOUND;
     }
 }
 
 // -------------- STATIC METHODS --------------
-Staff* Staff::login(const string &userid, const string &password){
-    Staff *staff = new Staff(userid, password);
-
-    if(staff->id == ""){ // if staff is not found
-        delete staff;
-        staff = NULL;
+Staff* Staff::login(const string &userid, const string &password)
+{
+    try {
+        Staff *staff = new Staff(userid, password);
+        return staff;
     }
-    return staff;
+    catch (const ERROR_STAFF &error) {
+        switch (error) {
+            case ERROR_STAFF::STAFF_NOT_FOUND:
+                cout << "\n ERROR: NO STAFF MEMBER FOUND WITH ID \""<< userid << "\"" << endl;
+                break;
+            case ERROR_STAFF::INVALID_PASSWORD:
+                cout << "\n ERROR: INVALID PASSWORD. TRY AGAIN..." << endl;
+                break;
+        }
+        return NULL;
+    }
+    catch (const std::exception & error) {
+        perror("\n ERROR: ");
+        return NULL;
+    }
 }
 
-void Staff::displayStaffDetails(const std::string &staffId){
-    json staff = Util::readData("staff", staffId);
-    if(staff != NULL){
-        cout << "\n\n ============= STAFF DETAILS =============\n" << endl;
-        cout << "          Id: " << staffId << endl;
-        cout << "        Name: " << staff["name"] << endl;
-        cout << " Designation: " << staff["designation"] << endl;
-        cout << "   Branch id: " << staff["branch_id"] << endl;
-        cout << "      Mobile: " << staff["mobile"] << endl;
-        cout << "       Email: " << staff["email"] << endl;
-        cout << "     Address: " << staff["address"] << endl;
-        cout << "      Salary: Rs." << staff["salary"] << endl;
+void Staff::displayStaffDetails(const std::string &staffId)
+{
+    json staff = Utils::readData("staff", staffId);
+    if(!staff.empty()){
+        Staff(staffId, staff["password"]).displayStaffDetails();
     } else {
         cout << "\n ERROR: NO STAFF MEMBER FOUND WITH ID \""<< staffId << "\"" << endl;
     }
 }
 
 // -------------- METHODS --------------
-void Staff::displayPanel(){
+void Staff::displayPanel()
+{
     short choice = 1;
     system("clear");
     while(choice != 0){
@@ -415,12 +446,14 @@ void Staff::displayPanel(){
         cout << " 6) Withdraw Money" << endl;
         cout << " 7) Deposite Money" << endl;
         cout << " 0) Logout" << endl;
-        Util::scanNumber(choice, " => Enter Choice: ");
+        Utils::scanNumber(choice, " => Enter Choice: ");
 
         switch (choice) {
             case 0: system("clear");
                 return;
             case 1: this->displayStaffDetails();
+                getc(stdin);
+                system("clear");
                 break;
             case 2: this->updateAccountDetails();
                 break;
@@ -440,19 +473,21 @@ void Staff::displayPanel(){
     }
 }
 
-void Staff::displayStaffDetails(){
+void Staff::displayStaffDetails()
+{
     cout << "\n\n ================ DETAILS ================\n" << endl;
-    cout << "          Id: " << this->id << endl;
-    cout << "        Name: " << this->name << endl;
-    cout << " Designation: " << this->designation << endl;
-    cout << "   Branch id: " << this->branch_id << endl;
-    cout << "      Mobile: " << this->mobile << endl;
-    cout << "       Email: " << this->email << endl;
-    cout << "     Address: " << this->  address << endl;
-    cout << "      Salary: Rs." << this->salary << endl;
+    cout << " Id          : " << this->id << endl;
+    cout << " Name        : " << this->name << endl;
+    cout << " Designation : " << this->designation << endl;
+    cout << " Branch id   : " << this->branch_id << endl;
+    cout << " Mobile      : " << this->mobile << endl;
+    cout << " Email       : " << this->email << endl;
+    cout << " Address     : " << this->address << endl;
+    cout << " Salary      : Rs." << this->salary << endl;
 }
 
-void Staff::updateAccountDetails(){
+void Staff::updateAccountDetails()
+{
     this->displayStaffDetails();
     while(1){
         cout << "\n ===== SELECT WHAT TO UPDATE =====" << endl;
@@ -464,10 +499,10 @@ void Staff::updateAccountDetails(){
         cout << " 0) Cancel" <<endl;
 
         short choice;
-        Util::scanNumber(choice, " Enter Choice: ");
+        Utils::scanNumber(choice, " Enter Choice: ");
 
         string newValue, fieldToUpdate;
-        json data = Util::readData();
+        json data = Utils::readData();
 
         if(choice == 0) return;
         else if(choice == 1) fieldToUpdate = "name";
@@ -492,20 +527,20 @@ void Staff::updateAccountDetails(){
         cin.ignore();
         cout << " Enter New "<< fieldToUpdate <<": ";
         getline(cin, newValue);
-        Util::trim(newValue);
+        Utils::trim(newValue);
 
         // validating inputs
         if(newValue == "" ||
-           (fieldToUpdate=="name" && !Util::isNameValid(newValue)) ||
-           (fieldToUpdate=="mobile" && !Util::isMobileValid(newValue)) ||
-           (fieldToUpdate=="email" && !Util::isEmailValid(newValue)) ||
-           (fieldToUpdate=="password" && !Util::isPasswordValid(newValue))
+           (fieldToUpdate=="name" && !Utils::isNameValid(newValue)) ||
+           (fieldToUpdate=="mobile" && !Utils::isMobileValid(newValue)) ||
+           (fieldToUpdate=="email" && !Utils::isEmailValid(newValue)) ||
+           (fieldToUpdate=="password" && !Utils::isPasswordValid(newValue))
         ){
             continue;
         }
 
         // updating data into JSON file as well as into current object
-        Util::updateData(data, data["staff"][this->id][fieldToUpdate], newValue);
+        Utils::updateData(data, data["staff"][this->id][fieldToUpdate], newValue);
         switch (choice) { // updating values in the current object
             case 1: this->name = newValue; break;
             case 2: this->mobile = newValue; break;
@@ -515,48 +550,115 @@ void Staff::updateAccountDetails(){
     }
 }
 
-void Staff::displayBankAccountDetails(){
+void Staff::displayBankAccountDetails()
+{
     long int accountNumber;
-    Util::scanNumber(accountNumber, "\n => Enter account number: ");
-    Account::displayAccountDetails(accountNumber);
+    try {
+        Utils::scanNumber(accountNumber, "\n => Enter bank account number: ");
+        Account::displayAccountDetails(accountNumber);
+    } catch (const string &error) {
+        cout << "\n ERROR: "<< error << endl;
+    } catch (...){
+        cout << "\n ERROR: exception in Staff::displayBankAccountDetails()" << endl;
+    }
+
 }
 
-void Staff::createBankAccount(){
+long int Staff::createAccountHolder()
+{
+    /// @todo test this function
+    string name, address, mobile;
+    system("clear");
+    cout << "====== ENTER ACCOUNT HOLDER DETAILS ======" << endl
+         << " => Enter 0(zero) to cancle..." << endl;
+
+    try {
+        cin.ignore();
+
+        do {
+            cout << "\n Name: ";
+            getline(cin, name);
+            Utils::trim(name);
+            if(name == "0") // operation cancel
+                throw -1;
+        } while (!Utils::isNameValid(name)); // until the name is not valid
+
+        do {
+            cout << "\n Mobile Number: ";
+            getline(cin, mobile);
+            Utils::trim(mobile);
+            if(mobile == "0") // operation cancel
+                throw -1;
+        } while (Utils::isMobileValid(mobile)); // until the mobile is not valid
+
+        do {
+            cout << "\n Address: ";
+            getline(cin, address);
+            Utils::trim(address);
+            if(address == "0") // operation cancel
+                throw -1;
+        } while (Utils::isAddressValid(address)); // until the address is not valid
+
+        long int newAccountHolderId = AccountHolder::createAccountHolder(name, mobile, address);
+        return newAccountHolderId;
+
+    } catch (const int &error){
+        if (error == -1){ // operation cancel
+            cout << "\n => Operation cancelled: add new account holder..." <<  endl;
+        }
+    } catch (const char* error) {
+        cout << error;
+    } catch (...) {
+        cout << "\n ERROR: EXCEPTION IN Staff::createAccountHolder()" << endl;
+    }
+    return 0; // if account is not created
+}
+
+void Staff::createBankAccount()
+{
     long int accountHolderId, balance;
     short choice;
 
     try {
-        // Getting Account Holder Id
+        // ---------- Getting Account Holder Id ----------
         while(1){
-            Util::scanNumber(accountHolderId, "\n Enter account holder id: ");
-            AccountHolder *accountHolder = new AccountHolder(accountHolderId);
+            Utils::scanNumber(accountHolderId, "\n Enter account holder id: ");
+            json accountHolder = Utils::readData("account_holder", to_string(accountHolderId));
 
-            // if account holder is not found
-            if(accountHolder->getId() == 0){
+            // if account holder not found
+            if(accountHolder.empty()){
+                long int newAccountHolderId;
                 while(1){
                     cout << "\n ============ Account Holder Not Found ============" << endl
                          << "\n 1) Add new Account Holder"
                          << "\n 2) Re-enter Account Holder Id "
                          << "\n 3) Cancel";
-                    Util::scanNumber(choice, "\n Enter choice: ");
+                    Utils::scanNumber(choice, "\n Enter choice: ");
 
-                    switch (choice) {
-                        case 1: // add functionality
-                            break;
-                        case 2: continue;
-                        case 3: return;
-                        default: cout << "\n => ERROR: invalid choice entered..." << endl;
+                    if(choice == 1){
+                        newAccountHolderId = this->createAccountHolder();
+                        if(newAccountHolderId == 0){ // if account holder is not created properly
+                            cout << "\n ERROR: ACCOUNR HOLDER IS NOT CREATED PROPERLY ! TRY AGAIN..." << endl;
+                            continue;
+                        }
+                    } else if( choice == 2){
+                        break;
+                    } else if( choice == 3){
+                        return;
+                    } else {
+                        cout << "\n => ERROR: invalid choice entered..." << endl;
                     }
                 }
             }
         }
 
-        // Getting Account Type
+        // ---------- Getting Account Type ----------
         string accountType;
         while(1){
             cout << "\n => ACCOUNT TYPE <=" << endl
-                 << "\n    1) Savings\n    2) Current";
-            Util::scanNumber(choice, "\n Enter choice: ");
+                 << "\n    1) Savings"
+                    "\n    2) Current";
+            Utils::scanNumber(choice, "\n Enter choice: ");
 
             if(choice == 1 || choice == 2){
                 accountType = (choice == 1? "Saving": "Current");
@@ -565,30 +667,45 @@ void Staff::createBankAccount(){
             else cout << "\n => ERROR: invalid choice entered..." << endl;
         }
 
-        Util::scanNumber(balance, " Enter Initial balance: ");
+        Utils::scanNumber(balance, " Enter Initial balance: ");
+
+        while(balance < 1){
+            Utils::scanNumber(balance, " Enter Initial balance: ");
+        }
+
         Account acc = Account::createNewAccount(accountHolderId, balance, accountType);
         cout << "\n => New Account is created...";
         acc.displayAccountDetails();
-    }
-    catch (const exception &e) {
-        cout << "\n => ERROR: " << e.what() << endl;
+
+    } catch (const string &error) {
+        cout << "\n ERROR: " << error << endl;
+    } catch (const exception &error) {
+        cout << "\n => ERROR: " << error.what() << endl;
     }
 }
 
-void Staff::removeBankAccount(){
+void Staff::removeBankAccount()
+{
     int account_number;
-    Util::scanNumber(account_number, "\n Enter Account Number to Remove: ");
-    Account::removeAccount(account_number, this->id);
+    try {
+        Utils::scanNumber(account_number, "\n Enter Bank Account Number to Remove: ");
+        Account::removeAccount(account_number, this->id);
+    } catch (const string &error) {
+        cout << "\n ERROR: " << error << endl;
+    } catch (...) {
+        cout << "\n ERROR: EXCEPTION IN Staff::removeBankAccount()" << endl;
+    }
 }
 
-void Staff::withdraw(){
+void Staff::withdraw()
+{
     long int accountNumber, amount;
-    Util::scanNumber(accountNumber, " => Enter bank account number: ");
+    Utils::scanNumber(accountNumber, " => Enter bank account number: ");
 
     try {
         // Account constructor will throw an error (string type), if account is not found
         Account acc(accountNumber);
-        Util::scanNumber(amount, " => Enter amount to Withdraw: Rs.");
+        Utils::scanNumber(amount, " => Enter amount to Withdraw: Rs.");
         if(amount < 1) // if negative amount is entered
             throw amount;
         acc.withdraw(amount ,this->id);
@@ -602,14 +719,15 @@ void Staff::withdraw(){
     }
 }
 
-void Staff::deposit(){
+void Staff::deposit()
+{
     long int accountNumber, amount;
-    Util::scanNumber(accountNumber, " => Enter bank account number: ");
+    Utils::scanNumber(accountNumber, " => Enter bank account number: ");
 
     try {
         // Account constructor will throw an error (string type), if account is not found
         Account acc(accountNumber);
-        Util::scanNumber(amount, " => Enter amount to Deposit: Rs.");
+        Utils::scanNumber(amount, " => Enter amount to Deposit: Rs.");
         if(amount < 1) // if negative amount is entered
             throw amount;
         acc.deposit(amount, this->id);
@@ -629,28 +747,49 @@ void Staff::deposit(){
 // ===================================== ADMIN =====================================
 
 // ------- CONSTRUCTOR -------
-Admin::Admin(const string &adminId, const string &password) : Staff(adminId, password){
-    if (this->id != "" && ! isAdmin(adminId)){ //  if its not an admin
-        this->id = "";
-        cout << "\n ERROR: NO ADMIN FOUND WITH USERID \""<< adminId << "\"" << endl;
+Admin::Admin(const string &adminId, const string &password) : Staff(adminId, password)
+{
+    try {
+        if (!isAdmin(adminId)){ //  if its not an admin
+            throw ERROR_STAFF::NOT_AN_ADMIN;
+        }
+    } catch (const ERROR_STAFF &error) {
+        throw error;
+    } catch (const std::exception &error){
+        throw error;
     }
 }
 
 // ------- STATIC METHODS -------
-Admin* Admin::login(const string &userid, const string &password){
-    Admin *admin = new Admin(userid, password);
-    if(admin->id != ""){ // if admin is
+Admin* Admin::login(const string &userid, const string &password)
+{
+    try {
+        Admin *admin = new Admin(userid, password);
         return admin;
     }
-    else {
-        delete admin;
+    catch (const ERROR_STAFF & error) {
+        switch (error) {
+            case ERROR_STAFF::STAFF_NOT_FOUND:
+                cout << "\n ERROR: NO STAFF MEMBER FOUND WITH ID \""<< userid << "\"" << endl;
+                break;
+            case ERROR_STAFF::INVALID_PASSWORD:
+                cout << "\n ERROR: INVALID PASSWORD. TRY AGAIN..." << endl;
+                break;
+            case ERROR_STAFF::NOT_AN_ADMIN:
+                cout << "\n ERROR: \""<< userid <<"\" IS NOT AN ADMIN"<< endl;
+                break;
+        }
+        return NULL;
+    }
+    catch (const std::exception & error) {
+        perror("\n ERROR: ");
         return NULL;
     }
 }
 
-bool Admin::isAdmin(const string &id){
-    json admins = Util::readData("admin");
-
+bool Admin::isAdmin(const string &id)
+{
+    json admins = Utils::readData("admin");
     for(auto& admin: admins.items()){
         if(id == admin.value()) return true;
     }
@@ -658,7 +797,8 @@ bool Admin::isAdmin(const string &id){
 }
 
 // ------- PRIVATE METHODS -------
-string Admin::selectDesignation(){
+string Admin::selectDesignation()
+{
     short choice;
     while(1){
         cout << "\n ===== SELECT DESIGNATION =====" << endl
@@ -667,7 +807,7 @@ string Admin::selectDesignation(){
              << " 3) Loan officer" << endl
              << " 4) Security" << endl
              << " 5) PO" << endl;
-        Util::scanNumber(choice, " Enter Designation Choice: ");
+        Utils::scanNumber(choice, " Enter Designation Choice: ");
 
         switch (choice) {
             case 1: return "Branch Manager";
@@ -680,13 +820,14 @@ string Admin::selectDesignation(){
     }
 }
 
-void Admin::searchStaff(){
+void Admin::searchStaff()
+{
     short choice;
     string input;
     cout << "\n ======= SEARCH STAFF BY =======\n" << endl;
     cout << " 1) Id"<<endl;
     cout << " 2) Name"<<endl;
-    Util::scanNumber(choice, " Enter choice: ");
+    Utils::scanNumber(choice, " Enter choice: ");
 
     switch (choice) {
         case 1:
@@ -708,7 +849,8 @@ void Admin::searchStaff(){
 }
 
 // ------- UTIL METHODS -------
-void Admin::displayPanel(){
+void Admin::displayPanel()
+{
     short choice = 1;
     string input; // for scan staff id and name
     system("clear");
@@ -717,14 +859,14 @@ void Admin::displayPanel(){
         cout << "\n ----------- ADMIN PANEL -----------\n" << endl;
         cout << " 1) Display Your Details " << endl;
         cout << " 2) Update Your Info" << endl;
-        cout << " 3) Search Staff Details" << endl;
+        cout << " 3) Search Staff" << endl;
         cout << " 4) Update Staff Details" << endl;
         cout << " 5) Add New Staff" << endl;
         cout << " 6) Remove Staff" << endl;
         cout << " 7) Display Staff Menu" << endl;
         cout << " 8) Display Logs" << endl;
         cout << " 0) Logout" << endl;
-        Util::scanNumber(choice, " => Enter Choice: ");
+        Utils::scanNumber(choice, " => Enter Choice: ");
 
         switch (choice) {
             case 0: system("clear"); return;
@@ -751,7 +893,8 @@ void Admin::displayPanel(){
     }
 }
 
-void Admin::displayLogsByMonth(){
+void Admin::displayLogsByMonth()
+{
     json logs;
     unsigned short year, month;
 
@@ -759,7 +902,8 @@ void Admin::displayLogsByMonth(){
     system("clear");
     cout << "===== Withdraw & Deposite logs by Month =====" << endl
          << "\n [ Enter 0 for current month ]" << endl;
-    Util::scanNumber(year ," Enter year: ");
+
+    Utils::scanNumber(year ," Enter year: ");
 
     // if year == 0, means current year and month should be considered
     if(year == 0){
@@ -769,19 +913,19 @@ void Admin::displayLogsByMonth(){
         year = currentTime->tm_year + 1900;
         month = currentTime->tm_mon + 1;
     } else { // get the specific month from user
-        Util::scanNumber(month ," Enter month: ");
+        Utils::scanNumber(month ," Enter month: ");
     }
 
     /*
      * getchar() is called here to clear the input stream for kbhit() used in next looping statement.
-     * kbhit() checks for the keypress
+     * kbhit() checks for the keypress to stop infinate loop
      */
     getchar();
 
-    while(! Util::kbhit()){ // showing logs until any key is pressed from keyboard
+    while(! Utils::kbhit()){ // showing logs until any key is pressed from keyboard
         system("clear");
 
-        logs = Util::readLogs(year, month);
+        logs = Utils::readLogs(year, month);
         if(logs.empty()){
             cout << "\n NO LOGS FOUND FOR "<<year<<"/"<<month << endl;
             return;
@@ -790,7 +934,6 @@ void Admin::displayLogsByMonth(){
         cout << "\n=-=-=-=-=-=-=-=-=-=-=-=-= Logs of "<<year<<"/"<<month<<" =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
         cout << "\n| Trans_Id |   Desc   | Bank Account Id | Amount(Rs) | Staff id | Date |   Time   |" << endl
              << "-----------------------------------------------------------------------------------" << endl;
-
 
         string day, transactionType, staffId;
 
@@ -823,27 +966,49 @@ void Admin::displayLogsByMonth(){
     }
 }
 
-void Admin::searchStaffDetailsByName(string &staffName){
-    json allStaff = Util::readData("staff");
-    Util::trim(staffName);
-    transform(staffName.begin(), staffName.end(), staffName.begin(), ::tolower);
-    short recordsFound = 0;
+void Admin::searchStaffDetailsByName(string &inputName)
+{
+    json allStaff = Utils::readData("staff");
+    Utils::trim(inputName);
+    transform(inputName.begin(), inputName.end(), inputName.begin(), ::tolower);
+    unsigned short recordsFound = 0;
+
+    string name;
+    string designation;
+    string email;
+    string mobile;
+
+    cout << "\n -------------------------------------------------------------------------------------------------------------" << endl;
+    cout << " |    ID    |        NAME        |   DESIGNATION   | BRANCH ID |   MOBILE   |             EMAIL              |" << endl
+         << " -------------------------------------------------------------------------------------------------------------" << endl;
 
     for(auto &staff: allStaff.items()){
-        string staffName2 = staff.value()["name"];
-        transform(staffName2.begin(), staffName2.end(), staffName2.begin(), ::tolower);
-        if(staffName == staffName2){
-            Staff::displayStaffDetails(staff.key());
+        name = staff.value()["name"];
+        Utils::trim(name, "\"");
+        string surname = name.substr(name.find(" ", 3)+1); // to compare with surname too
+
+        if(!name.rfind(inputName, 0) || !surname.rfind(inputName, 0)){
+            json value = staff.value();
+
+            designation = value["designation"];
+            mobile = value["mobile"];
+            email = value["email"];
+
+            cout << " | "  << setw(8)  << std::left << staff.key()
+                 << " | " << setw(18) << name
+                 << " | " << setw(15) << Utils::trim(designation, "\"")
+                 << " | " << setw(9)  << to_string(value["branch_id"])
+                 << " | " << setw(10) << Utils::trim(mobile, "\"")
+                 << " | " << setw(30) << Utils::trim(email, "\"") << " |" << endl;
             recordsFound++;
         }
     }
-    cout << "\n===========================================" << endl
-         << " => Total Records Found: " << recordsFound << endl
-         << "===========================================" << endl;
+    cout << " -------------------------------------------------------------------------------------------------------------" << endl
+         << "\n => TOTAL RECORDS FOUND: " << recordsFound << endl;
 }
 
 void Admin::updateStaffDetails(const string &staffId){
-    json data = Util::readData();
+    json data = Utils::readData();
 
     if(data["staff"].contains(staffId)){
         short choice;
@@ -860,7 +1025,7 @@ void Admin::updateStaffDetails(const string &staffId){
                  << " 8) Email" << endl
                  << " 0) Cancle" << endl;
 
-            Util::scanNumber(choice, " Enter Choice: ");
+            Utils::scanNumber(choice, " Enter Choice: ");
 
             string fieldToUpdate;
             switch (choice) {
@@ -877,8 +1042,8 @@ void Admin::updateStaffDetails(const string &staffId){
 
             if (choice == 2 || choice == 4){ // if value to update is numerical
                 int newValue;
-                Util::scanNumber(newValue, " Enter New Value: ");
-                Util::updateData(data, data["staff"][staffId][fieldToUpdate], newValue);
+                Utils::scanNumber(newValue, " Enter New Value: ");
+                Utils::updateData(data, data["staff"][staffId][fieldToUpdate], newValue);
             }
             else if (choice >= 1 && choice <= 8){ // if value to update is string
                 string newValue;
@@ -891,12 +1056,12 @@ void Admin::updateStaffDetails(const string &staffId){
                 }
 
                 // Validating inputs
-                if( ( fieldToUpdate=="name" && !Util::isNameValid(newValue) ) ||
-                    ( fieldToUpdate=="password" && !Util::isPasswordValid(newValue) ) ||
-                    ( fieldToUpdate=="mobile" && !Util::isMobileValid(newValue) ) ||
-                    ( fieldToUpdate=="email" && !Util::isEmailValid(newValue) )
+                if( ( fieldToUpdate=="name" && !Utils::isNameValid(newValue) ) ||
+                    ( fieldToUpdate=="password" && !Utils::isPasswordValid(newValue) ) ||
+                    ( fieldToUpdate=="mobile" && !Utils::isMobileValid(newValue) ) ||
+                    ( fieldToUpdate=="email" && !Utils::isEmailValid(newValue) )
                 ){ return; }
-                Util::updateData(data, data["staff"][staffId][fieldToUpdate], newValue);
+                Utils::updateData(data, data["staff"][staffId][fieldToUpdate], newValue);
             }
             else { // invalid menu choice
                 cout << "\n => ERROR: invalid choice entered..." << endl;
@@ -906,7 +1071,7 @@ void Admin::updateStaffDetails(const string &staffId){
         } // end of while(1)
     }
     else {
-        cout << "\n => ERROR: Staff Not Found !" << endl;
+        cout << "\n => ERROR: STAFF NOT FOUND !" << endl;
         getc(stdin);
     }
 }
@@ -928,22 +1093,22 @@ void Admin::addStaff(){
     getline(cin, email);
     designation = selectDesignation();
 
-    Util::scanNumber(branch_id, " Enter Branch id: ");
-    Util::scanNumber(salary, " Enter Salary: ");
+    Utils::scanNumber(branch_id, " Enter Branch id: ");
+    Utils::scanNumber(salary, " Enter Salary: ");
     cin.ignore();
 
     cout << "\n Enter password for staff's account: ";
     getline(cin, password);
 
     // validating inputs
-    if( Util::isNameValid(name) &&
-        Util::isPasswordValid(password) &&
-        Util::isEmailValid(email) &&
-        Util::isMobileValid(mobile) &&
-        Util::isAddressValid(address))
+    if( Utils::isNameValid(name) &&
+        Utils::isPasswordValid(password) &&
+        Utils::isEmailValid(email) &&
+        Utils::isMobileValid(mobile) &&
+        Utils::isAddressValid(address))
     {
         // push the data into JSON file
-        json data = Util::readData();
+        json data = Utils::readData();
         json newStaff = {
             {"address", address},
             {"branch_id", branch_id},
@@ -958,19 +1123,22 @@ void Admin::addStaff(){
         // creating staff-id for new staff member.
         int staffNumber = data["last_staff_number"];
         staffNumber++;
+
         string staffId = "bank"; // adding prefix 'bank' to userid, so it will look like 'bank0001'
-        if(staffNumber <= 9) staffId += "000" + to_string(staffNumber);
-        else if(staffNumber <= 99) staffId += "00" + to_string(staffNumber);
-        else if(staffNumber <= 999) staffId += "0" + to_string(staffNumber);
-        else if(staffNumber <= 9999) staffId += to_string(staffNumber);
+
+        ostringstream staffIdWithLeadindZeors;
+        if(staffNumber <= 9999){ // adding leading zeros to new staff id
+            staffId += to_string(staffNumber);
+            staffIdWithLeadindZeors << setw(4) << setfill('0') << to_string(staffNumber);
+        }
         else {
             cout << "\n ERROR: STAFF LIMIT OUT OF BOUND" << endl;
             return;
         }
 
-        data["staff"].push_back(json::object_t::value_type(staffId, newStaff));
+        data["staff"].push_back(json::object_t::value_type(staffIdWithLeadindZeors.str(), newStaff));
         data["last_staff_number"] = staffNumber;
-        Util::updateData(data);
+        Utils::updateData(data);
         cout << "\n => NEW STAFF ADDED SUCCESSFULLY..." << endl;
         Staff::displayStaffDetails(staffId);
     }
@@ -982,19 +1150,19 @@ void Admin::removeStaff(){
     cout << "\n Enter Staff Id To Remove: ";
     cin >> staffIdToRemove;
 
-    // VARIFICATION
+    // ---------- VARIFICATION ----------
     if (staffIdToRemove == this->id){
-        cout << "\n => ERROR: CAN'T REMOVE STAFF, THIS IS YOUR ID" << endl;
+        cout << "\n ERROR: CAN'T REMOVE STAFF, THIS IS YOUR ID" << endl;
         getc(stdin);
         return;
     }
     else if (Admin::isAdmin(staffIdToRemove)){
-        cout << "\n => ERROR: CAN'T REMOVE STAFF, GIVEN STAFF ID AS AN ADMIN" << endl;
+        cout << "\n ERROR: CAN'T REMOVE STAFF, GIVEN STAFF ID AS AN ADMIN" << endl;
         getc(stdin);
         return;
     }
 
-    json data = Util::readData();
+    json data = Utils::readData();
 
     if(data["staff"].contains(staffIdToRemove)){
         string password = "";
@@ -1016,7 +1184,7 @@ void Admin::removeStaff(){
                 continue;
             }
             data["staff"].erase(staffIdToRemove);
-            Util::updateData(data);
+            Utils::updateData(data);
             cout << "\n => STAFF IS DELETED SUCCESSFULLY..." << endl;
             break;
         }
@@ -1034,7 +1202,7 @@ void Admin::removeStaff(){
 // ------- CONSTRUCTOR -------
 Account::Account(long int accountNumber){
     try {
-        json data = Util::readData("account", to_string(accountNumber));
+        json data = Utils::readData("account", to_string(accountNumber));
         if(!data.empty()){
             // if account found, initializing data from json file
             this->accountNumber = accountNumber;
@@ -1047,8 +1215,7 @@ Account::Account(long int accountNumber){
             // so we can identify that this object is not valid since account not found.
             // have to use this method because constructor can't return any value from we can verify.
             this->accountNumber = 0;
-            string error = "BANK ACCOUNT NOT FOUND WITH ACCOUNT-NUMBER \""+ to_string(accountNumber) + "\" !";
-            throw error;
+            throw string("BANK ACCOUNT NOT FOUND WITH ACCOUNT-NUMBER \""+ to_string(accountNumber) + "\" !");
         }
     } catch (const string &error) {
         throw error; // rethrowing error to caller function
@@ -1057,20 +1224,27 @@ Account::Account(long int accountNumber){
 
 // ------- STATIC METHODS -------
 void Account::displayAccountDetails(const long &accountNumber){
-    json data = Util::readData("account", to_string(accountNumber));
+    json data = Utils::readData("account", to_string(accountNumber));
 
-    if (!data.empty()){
-        cout << endl << "\n =============== ACCOUNT DETAILS ===============\n" << endl;
-        cout << "        Account Number: " << accountNumber << endl;
-        cout << " Account Holder Number: " << data["account_holder_id"] << endl;
-        cout << "               Balance: Rs." << data["balance"] << endl;
-        cout << "          Account Type: " << data["type"] << endl;
+    try {
+        if (data.empty()){ // if account not found
+            string error = "BANK ACCOUNT NOT FOUND WITH ACCOUNT-NUMBER \""+ to_string(accountNumber) + "\" !";
+            throw error;
+        }
+        else {
+            cout << endl << "\n =============== ACCOUNT DETAILS ===============\n" << endl;
+            cout << " Account Number        : " << accountNumber << endl;
+            cout << " Account Holder Number : " << data["account_holder_id"] << endl;
+            cout << " Balance               : Rs." << data["balance"] << endl;
+            cout << " Account Type          : " << data["type"] << endl;
+        }
+    } catch (const string &error) {
+        throw error;
     }
-    else cout << "\n => ERROR: No account found with account_number \"" << accountNumber << "\" !" << endl;
 }
 
 Account Account::createNewAccount(const long int &accountHolderId, const long int &balance, const string &type){
-    json data = Util::readData();
+    json data = Utils::readData();
 
     // getting count of accounts to get new account id
     long int accountNumber = data["account"].size()+1;
@@ -1086,49 +1260,60 @@ Account Account::createNewAccount(const long int &accountHolderId, const long in
     data["account"] += json::object_t::value_type(to_string(accountNumber), newAccount);
 
     // writing data to json file
-    Util::updateData(data);
+    Utils::updateData(data);
 
     return Account(accountNumber);
 }
 
 void Account::removeAccount(const long &accountNumber, const string &staffId){
-    json data = Util::readData();
+    json data = Utils::readData();
 
-    if(! data["account"].contains(to_string(accountNumber))){
-        cout << "\n ERROR: Account NOT found with account_number " << accountNumber << endl;
-    } else {
-        Account::displayAccountDetails(accountNumber);
-        cout << "\n ===== ARE YOU SURE YOU WANT TO PERMENETALY DELETE THIS BANK ACCOUNT? =====" << endl;
-        cout << "\n       0) NO\n       1) YES";
-        short choice;
+    try {
+        if(data["account"].contains(to_string(accountNumber))){ // if account found
+            Account::displayAccountDetails(accountNumber);
+            cout << "\n ===== ARE YOU SURE YOU WANT TO PERMENETALY DELETE THIS BANK ACCOUNT? =====" << endl;
+            cout << "\n       0) NO"
+                    "\n       1) YES";
+            short choice;
 
-        Util::scanNumber(choice, "\n Enter choice: ");
-        string password;
+            Utils::scanNumber(choice, "\n Enter choice: ");
+            string password;
 
-        switch (choice) {
-            case 0: cout << "\n => Opration Canceled..." << endl;
-                return;
-            case 1:
-                cout << "\n Enter your password: ";
-                cin >> password;
-                if (password == data["staff"][staffId]["password"]){
-                    short removeCount = data["account"].erase(to_string(accountNumber)); // removing object from json
-                    if (removeCount == 1){
-                        Util::updateData(data);
-                        cout << "\n => Account is REMOVED Successfully !" << endl;
+            switch (choice) {
+                case 0: cout << "\n => Opration Canceled..." << endl;
+                    return;
+                case 1:
+                    // password validation of staff, before removing account
+                    cout << "\n Enter your password: ";
+                    cin >> password;
+                    if (password == data["staff"][staffId]["password"]){
+                        short removeCount = data["account"].erase(to_string(accountNumber)); // removing object from json
+                        if (removeCount == 1){
+                            Utils::updateData(data);
+                            cout << "\n => Account is REMOVED Successfully !" << endl;
+                        }
+                        else
+                            throw string("BANK ACCOUNT IS NOT REMOVED, TRY AGAIN...");
                     }
-                    else cout << "\n => Account is NOT REMOVED" << endl;
-                }
-                else {
-                    cout << "\n => Invalid Password !" << endl;
-                }
-                break;
-            default: cout << "\n => Please enter 0 or 1" << endl;
+                    else {
+                        throw string("Invalid Password !");
+                    }
+                    break;
+                default: cout << "\n => Please enter 0 or 1" << endl;
+            }
         }
+        else { // if account not found
+            throw string("BANK ACCOUNT NOT FOUND WITH ACCOUNT-NUMBER \"" +to_string(accountNumber)+ "\"");
+        }
+    } catch (const string &error) {
+        throw error;
+    } catch (...) {
+        throw string("EXCEPTION IN Account::removeAccount()");
     }
+
 }
 
-long int Account::getLastAccountNumber(){ return Util::readData("last_account_number"); }
+long int Account::getLastAccountNumber(){ return Utils::readData("last_account_number"); }
 
 // ------- GETTER METHODS -------
 long int Account::getAccountNumber(){ return this->accountNumber; }
@@ -1136,7 +1321,7 @@ long int Account::getBalance(){ return this->balance; }
 long int Account::getAccountHolderId(){ return this->accountHolderId; }
 string Account::getType(){ return this->type; }
 
-// ------- UTIL METHODS -------
+// ------- Util METHODS -------
 void Account::displayAccountDetails(){
     cout << endl << "\n =============== ACCOUNT DETAILS ===============\n" << endl;
     cout << "\tAccount Number: " << accountNumber << endl;
@@ -1153,15 +1338,15 @@ void Account::withdraw(const long int &amount, const std::string &staffId=""){
     }
     try {
         // reading data from json file
-        json data = Util::readData();
+        json data = Utils::readData();
         data["account"][to_string(accountNumber)]["balance"] = (this->balance - amount);
 
         // Wrtiting updated data into json file
-        Util::updateData(data);
+        Utils::updateData(data);
 
         // writing log of the transaction
         string type = "withdraw";
-        Util::writeWithdrawDepositeLog(BANK_LOG_TYPES::WITHDRAW, this->accountNumber, amount, staffId);
+        Utils::writeWithdrawDepositeLog(BANK_LOG_TYPES::WITHDRAW, this->accountNumber, amount, staffId);
 
         this->balance -= amount;
         cout << "\n => Rs." << amount << " is Debited from account_number " << this->accountNumber << endl
@@ -1174,13 +1359,13 @@ void Account::withdraw(const long int &amount, const std::string &staffId=""){
 void Account::deposit(const long int &amount, const std::string &staffId=""){
     try {
         // reading data from json file
-        json data = Util::readData();
+        json data = Utils::readData();
         data["account"][to_string(accountNumber)]["balance"] = this->balance + amount;
 
         // Wrtiting updated data into json file
-        Util::updateData(data);
+        Utils::updateData(data);
         string type = "deposit";
-        Util::writeWithdrawDepositeLog(BANK_LOG_TYPES::DEPOSIT, this->accountNumber, amount, staffId);
+        Utils::writeWithdrawDepositeLog(BANK_LOG_TYPES::DEPOSIT, this->accountNumber, amount, staffId);
 
         this->balance += amount;
         cout << "\n => Rs." << amount << " is Credited to account_number " << this->accountNumber << endl
@@ -1196,24 +1381,47 @@ void Account::deposit(const long int &amount, const std::string &staffId=""){
 // ===================================== ACCOUNT_HOLDER =====================================
 // ------- CONSTRUCTOR -------
 AccountHolder::AccountHolder(const long int &accountHolderId){
-    json accountHolder = Util::readData("account_holder", to_string(accountHolderId));
-
-    if(!accountHolder.empty()){
-        // initializing data from json file
-        this->id = accountHolderId;
-        this->name = accountHolder["name"];
-        this->mobile = accountHolder["mobile"];
-        this->address = accountHolder["address"];
-    } else {
-        // display error messsage if account number not found.
-        this->id = 0;
-        cout << "\n ERROR: NO ACCOUNT HOLDER FOUND WITH ID " << accountHolderId << " !" << endl;
+    try {
+        json accountHolder = Utils::readData("account_holder", to_string(accountHolderId));
+        if(accountHolder.empty()){ // if account holder not found
+            this->id = 0;
+            throw string("NO ACCOUNT HOLDER FOUND WITH ID \""+to_string(accountHolderId)+"\" !");
+        } else {
+            // initializing data from json file
+            this->id = accountHolderId;
+            this->name = accountHolder["name"];
+            this->mobile = accountHolder["mobile"];
+            this->address = accountHolder["address"];
+        }
+    } catch (const string &error) {
+        throw error;
+    } catch (const std::exception &error) {
+        throw error;
     }
 }
 
 // ------- STATIC METHODS -------
-//void AccountHolder::createAccountHolder(const std::string &name, const std::string &mobile, const std::string &address){}
-long int AccountHolder::getLastAccountHolderNumber(){ return Util::readData("last_account_holder_number"); }
+long int AccountHolder::createAccountHolder(const std::string &name, const std::string &mobile, const std::string &address){
+    json data = Utils::readData();
+    json newAccountHolder = {
+        {"name", name},
+        {"mobile", mobile},
+        {"address", address}
+    };
+
+    try {
+        long int accountHolderId = data["last_account_holder_number"];
+        accountHolderId++;
+        data["account_holder"].push_back(json::object_t::value_type(to_string(accountHolderId), newAccountHolder));
+        Utils::updateData(data);
+        return accountHolderId; // return the id of new account holder
+    } catch (const json::exception &error) {
+        cout << "ERROR: " << error.what() << endl;
+    } catch (const std::exception &error) {
+        cout << "ERROR: " << error.what() << endl;
+    }
+    return 0; // if account is not created
+}
 
 // ------- GETTER METHODS -------
 long int AccountHolder::getId(){ return this->id; }
