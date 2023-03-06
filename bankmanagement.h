@@ -9,6 +9,8 @@
 #include <regex>            // for pattern matching and validation
 #include <bits/stdc++.h>    // for transform() for lowercase and uppercase strings
 #include <nlohmann/json.hpp>// for working with json.
+
+// follwing 3 headers are used for function kbhit()
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -63,18 +65,6 @@ public:
      * ****************************************************************************/
     static int kbhit(void);
 
-    /** *************************************
-     * @brief returns data file(json) name
-     * @return name/path of the data/json file
-     ************************************* */
-    static std::string getFileName();
-
-    /** *************************************
-     * @brief returns log file name
-     * @return name/path of the log json file
-     ************************************* */
-    static std::string getLogFileName();
-
     /** ***********************************************************************************************
      * @brief static method, used to get input numeric values only.
      * Scans the number from the input stream,
@@ -96,10 +86,13 @@ public:
     static const char* trim(std::string &str, const std::string &charactersToRemove=" \t\n\r\f\v");
 
     /** *********************************************************************************
-     * @brief removeQutes trims leading and trailing double quotes from the given string
-     * @param str data from which qutoes wiil be removed
+     * @brief padLeft padds the given string with given character with specified length.
+     * @param str is string to be padded.
+     * @param totalLength is the total length of the string after padding.
+     * @param paddingCharacter is the character to be padded at the start of the string.
+     * @return padded string
      * *********************************************************************************/
-    static void removeQutes(std::string &str);
+    static std::string padLeft(std::string &str, const unsigned int totalLength, const char &paddingCharacter = ' ');
 
     //=================== Log Functions ========================
     /** *********************************************************************************************************
@@ -112,7 +105,7 @@ public:
     static void writeWithdrawDepositeLog(const BANK_LOG_TYPES &type,
                                          const long int &bankAccountId,
                                          const long int &amount,
-                                         const std::string &staffId);
+                                         const std::string &staffId = "");
 
     //=================== input validation functions using RegEx ========================
     /** ****************************************************************************************
@@ -147,13 +140,12 @@ public:
     static bool isAddressValid(std::string &address);
 
     //======================== functions to read data from JSON file ========================
-    /** ****************************************************************************************
+    /** **********************************************************************************
      * @brief reads data from json file.
-     * @param key1 to get specified object. Default value is "".
-     * @param key2 to find object from key object. Default value is "".
-     * @return json object with specified key & subkey. Returns whole data if no key is specified.
-     * ****************************************************************************************/
-    static nlohmann::json readData(const std::string &key1="", const std::string &key2="");
+     * @param path is the list/path of keys to read from json data. Default value is "/".
+     * @return json object with specified path. Returns whole data if no path is specified.
+     * **********************************************************************************/
+    static nlohmann::json readData(const std::string &path="/");
 
     /** ****************************************************************************************
      * @brief reads logs from json file
@@ -244,21 +236,26 @@ private:
     std::string selectDesignation(); /// to provide designation options for input to addStaff() and updateStaffDetails().
     void searchStaff();     /// gives options to search staff by id and name and handles that operation.
 public:
-    // ---------- constructor & destructor ----------
+    // ---------- CONSTRUCTOR & DESTRUCTOR ----------
     Admin(const std::string &adminId, const std::string &password);
 
     // static methods
     static Admin* login(const std::string &userid, const std::string &password);
     static bool isAdmin(const std::string &id);
+    static void displayStaffDetails(const std::string &staffId);
 
-    // util methods
+    // ---------- UTIL METHODS ----------
     void displayPanel();
     void searchStaffDetailsById(const std::string &staffId);
     void searchStaffDetailsByName(std::string &staffName);
     void updateStaffDetails(const std::string &staffId);
     void addStaff();
     void removeStaff();
-    void displayLogsByMonth();
+
+    // ---------- LOG FUNCTIONS ----------
+    void displayLogs();
+    void displayWithdrawDepositLogs(const nlohmann::json &logs);
+    void displayWithdrawDepositLogsByMonth();
 };
 
 
@@ -278,7 +275,7 @@ public:
     // ====== static methods ======
     static long int getLastAccountNumber();
     static void displayAccountDetails(const long int &accountNumber);
-    static Account createNewAccount(const long int &accountHolderId, const long int &balance, const std::string &type);
+    static long int createNewAccount(const long int &accountHolderId, const long int &balance, const std::string &type);
     static void removeAccount(const long int &accountNumber, const std::string &staffId);
 
     // ====== getter methods ======
@@ -288,8 +285,8 @@ public:
     std::string getType();
 
     // ====== util methods ======
-    void withdraw(const long int &amount, const std::string &staffId);
-    void deposit(const long int &amount, const std::string &staffId);
+    void withdraw(const long int &amount, const std::string &staffId="");
+    void deposit(const long int &amount, const std::string &staffId="");
     void displayAccountDetails();
 };
 
