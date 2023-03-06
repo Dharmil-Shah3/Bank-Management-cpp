@@ -126,11 +126,9 @@ int Utils::kbhit(void)
     return 0;
 }
 
-json Utils::readData(const string &path)
+json Utils::readData(const string &key1, const string &key2)
 {
     try {
-        auto datapath = nlohmann::json_pointer<nlohmann::json>{path};
-
         ifstream fin(filename);
         if(!fin || fin.fail()){ // if file is not opened
             string error = "error in opening the file " + filename + " for reading,"
@@ -140,7 +138,10 @@ json Utils::readData(const string &path)
 
         json data = json::parse(fin);
         fin.close();
-        return data[datapath];
+
+        if(key1 == "") return data;
+        else if(key2 == "") return data[key1];
+        else return data[key1][key2];
     } catch (const string &error) {
         cout << "\n ERROR: " << endl;
     } catch (const exception &e) {
@@ -378,7 +379,7 @@ void Utils::handleBankLogin(const BANK_USER_ROLES &role)
 // ------------ CONSTRUCTOR & DESTRUCTOR --------------
 Staff::Staff(const string &id, const string &password)
 {
-    json staff = Utils::readData("/staff");
+    json staff = Utils::readData("staff");
     if (staff.contains(id)){ // staff found
         if(staff[id]["password"] != password){ // invalid password
             throw ERROR_STAFF::INVALID_PASSWORD;
@@ -617,7 +618,7 @@ void Staff::createBankAccount()
         // ---------- Getting Account Holder Id ----------
         while(1){
             Utils::scanNumber(accountHolderId, "\n Enter account holder id: ");
-            json accountHolder = Utils::readData("/account_holder/"+to_string(accountHolderId));
+            json accountHolder = Utils::readData("account_holder", to_string(accountHolderId));
 
             // if account holder not found
             if(accountHolder.empty()){
@@ -746,8 +747,11 @@ void Staff::deposit()
         if(amount < 1) // if negative amount is entered
             throw amount;
         acc.deposit(amount, this->id);
+    } catch (const ERROR_BANK_ACCOUNT &error) {
+        if(error == ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND)
+            cout << "\n ERROR: NO BANK ACCOUNT FOUND WITH GIVEN ACCOUNT NUMBER" << endl;
     } catch (const long int &amount){
-        cout << "\n ERROR: NEGATIVE AMOUNT (" << amount << ") IS ENTERED" << endl
+        cout << "\n ERROR: NEGATIVE OR ZERO AMOUNT (" << amount << ") IS ENTERED" << endl
              << " PLEASE ENTER VALID AMOUNT..." << endl;
     } catch (const exception &e){
         cout << "\n ERROR: " << e.what() << " in Staff::withdraw()" << endl;
@@ -802,7 +806,7 @@ Admin* Admin::login(const string &userid, const string &password)
 
 bool Admin::isAdmin(const string &id)
 {
-    json admins = Utils::readData("/admin");
+    json admins = Utils::readData("admin");
     for(auto& admin: admins.items()){
         if(id == admin.value()) return true;
     }
@@ -811,7 +815,7 @@ bool Admin::isAdmin(const string &id)
 
 void Admin::displayStaffDetails(const std::string &staffId)
 {
-    json staff = Utils::readData("/staff/"+staffId);
+    json staff = Utils::readData("staff", staffId);
     if(!staff.empty()){
         Staff(staffId, staff["password"]).displayStaffDetails();
     } else {
@@ -968,9 +972,33 @@ void Admin::displayWithdrawDepositLogs(const json &logs){
     }
 }
 
-void Admin::displayWithdrawDepositLogsByMonth()
+void Admin::displayWithdrawDepositLogsByDate()
 {
     json logs;
+    unsigned short year, month, date;
+
+    system("clear");
+    cout << "===== Withdraw & Deposite logs by Month =====" << endl
+         << "\n [ Enter 0 for current month ]" << endl;
+
+    Utils::scanNumber(year ," Enter year: ");
+
+    // if year == 0, means consider current data
+    if(year == 0){
+        //get the current year and month using time_t
+        time_t now = time(0);
+        tm *currentTime = localtime(&now);
+        year = currentTime->tm_year + 1900;
+        month = currentTime->tm_mon + 1;
+    } else { // get the specific month from user
+        Utils::scanNumber(month ," Enter month: ");
+    }
+
+}
+
+void Admin::displayWithdrawDepositLogsByMonth()
+{
+    json logs, tempLog = NULL;
     unsigned short year, month;
 
     // getting the year and month from user to display logs of that month
@@ -997,52 +1025,37 @@ void Admin::displayWithdrawDepositLogsByMonth()
      */
     getchar();
 
+    system("clear");
+
     while(! Utils::kbhit()){ // showing logs until any key is pressed from keyboard
-        system("clear");
 
         logs = Utils::readLogs(year, month);
-        if(logs.empty()){
-            cout << "\n NO LOGS FOUND FOR "<<year<<"/"<<month << endl;
-            return;
-        }
-        cout << "\n=-=-=-=-=-=-=-=-=-=-=-=-= Logs of "<<year<<"/"<<month<<" =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
-        cout << "\n| Trans_Id |   Desc   | Bank Account Id | Amount(Rs) | Staff id | Date |   Time   |" << endl
-             << "-----------------------------------------------------------------------------------" << endl;
 
-        string day, transactionType, staffId;
+        if(logs != tempLog){ // display logs only if there is any change in logs
+            system("clear");
 
-        for(auto &date: logs.items()){
-            day = date.key();
-            for(auto &transaction: date.value().items()){
-                json value = transaction.value();
-                transactionType = to_string(value["type"]);
-                transactionType = transactionType.substr(1, transactionType.length()-2);
-                staffId = to_string(transaction.value()["staff_id"]);
-                int lastIndexOfZero = transaction.key().find_first_not_of('0');
-                string transactionId = transaction.key().substr(lastIndexOfZero);
-
-                staffId = staffId == "\"\""? "": staffId.substr(1,8);
-
-                cout << "| " << setw(8) << transactionId << " "
-                     << "| " << setw(8) << transactionType << " "
-                     << "| " << setw(15) << to_string(value["account_number"]) << " "
-                     << "| " << setw(10) << to_string(value["amount"]) << " "
-                     << "| " << setw(8) << staffId << " "
-                     << "|  " << setw(2) << setfill('0') << day << "  "
-                     << "| " << setw(2) << to_string(value["time"]["hour"])
-                     << ":" << setw(2) << to_string(value["time"]["minute"])
-                     << ":" << setw(2) << to_string(value["time"]["second"]) << " |" << setfill(' ')<< endl;
+            if(logs.empty()){
+                cout << "\n NO LOGS FOUND FOR "<<year<<"/"<<month << endl;
+                return;
             }
+            cout << "\n=-=-=-=-=-=-=-=-=-=-=-=-= Logs of "<<year<<"/"<< setw(2) << setfill('0') << month << setfill(' ') <<" =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
+            setfill(' '); // resetting set fill character
+            this->displayWithdrawDepositLogs(logs); // displaying logs
+            cout << "-----------------------------------------------------------------------------------" << endl
+                 << "\n=> Press any key to exit..." << endl;
+        } else {
+            cout << " No changes" << endl;
         }
-        cout << "-----------------------------------------------------------------------------------" << endl
-             << "\n=> Press any key to exit..." << endl;
-        sleep(1);
+
+        tempLog = logs; // copiying value of logs to compare in the next iteration
+
+        sleep(1); // sleep for 1 second
     }
 }
 
 void Admin::searchStaffDetailsByName(string &inputName)
 {
-    json allStaff = Utils::readData("/staff");
+    json allStaff = Utils::readData("staff");
     Utils::trim(inputName);
     transform(inputName.begin(), inputName.end(), inputName.begin(), ::tolower);
     unsigned short recordsFound = 0;
@@ -1280,7 +1293,7 @@ void Admin::removeStaff()
 Account::Account(long int accountNumber)
 {
     try {
-        json data = Utils::readData("/account/"+to_string(accountNumber));
+        json data = Utils::readData("account", to_string(accountNumber));
         if(!data.empty()){
             // if account found, initializing data from json file
             this->accountNumber = accountNumber;
@@ -1289,13 +1302,9 @@ Account::Account(long int accountNumber)
             this->type = data["type"] == "s"? 's': 'c';
         } else {
             // if account NOT found
-            // setting accountNumber = 0
-            // so we can identify that this object is not valid since account not found.
-            // have to use this method because constructor can't return any value from we can verify.
             throw ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND;
         }
     } catch (const ERROR_BANK_ACCOUNT &error) {
-        /// @todo handle it everywhere else
         throw error;
     } catch (const std::exception &error) {
         throw error; // rethrowing error to caller function
@@ -1305,7 +1314,7 @@ Account::Account(long int accountNumber)
 // ------- STATIC METHODS -------
 void Account::displayAccountDetails(const long &accountNumber)
 {
-    json data = Utils::readData("/account/"+to_string(accountNumber));
+    json data = Utils::readData("account", to_string(accountNumber));
     try {
         if (data.empty()){ // if account not found
             throw ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND;
@@ -1420,7 +1429,7 @@ void Account::removeAccount(const long &accountNumber, const string &staffId)
     }
 }
 
-long int Account::getLastAccountNumber(){ return Utils::readData("/last_account_number"); }
+long int Account::getLastAccountNumber(){ return Utils::readData("last_account_number"); }
 
 // ------- GETTER METHODS -------
 long int Account::getAccountNumber(){ return this->accountNumber; }
@@ -1478,14 +1487,13 @@ void Account::deposit(const long int &amount, const std::string &staffId)
 
         // Wrtiting updated data into json file
         Utils::updateData(data);
-        string type = "deposit";
         Utils::writeWithdrawDepositeLog(BANK_LOG_TYPES::DEPOSIT, this->accountNumber, amount, staffId);
 
         this->balance += amount;
         cout << "\n => Rs." << amount << " is Credited to account_number " << this->accountNumber << endl
              << " => Current Available balance is Rs." << this->balance << endl;
-    } catch (const exception &e) {
-        cout << "\n ERROR: " << e.what() << " in Account::deposit()" << endl;
+    } catch (const exception &error){
+        cout << "\n ERROR: " << error.what() << " in Account::deposit()" << endl;
     }
 }
 // ======================================= END ACCOUNT ======================================
@@ -1497,7 +1505,7 @@ void Account::deposit(const long int &amount, const std::string &staffId)
 AccountHolder::AccountHolder(const long int &accountHolderId)
 {
     try {
-        json accountHolder = Utils::readData("/account_holder/"+to_string(accountHolderId));
+        json accountHolder = Utils::readData("account_holder", to_string(accountHolderId));
         if(accountHolder.empty()){ // if account holder not found
             throw ERROR_ACCOUNT_HOLDER::USER_NOT_FOUND;
         } else {

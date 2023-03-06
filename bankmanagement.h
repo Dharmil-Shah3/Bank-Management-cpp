@@ -142,10 +142,11 @@ public:
     //======================== functions to read data from JSON file ========================
     /** **********************************************************************************
      * @brief reads data from json file.
-     * @param path is the list/path of keys to read from json data. Default value is "/".
-     * @return json object with specified path. Returns whole data if no path is specified.
+     * @param key1 to get specified object. Default value is "".
+     * @param key2 to find object from key object. Default value is "".
+     * @return json object with specified key & subkey. Returns whole data if no key is specified.
      * **********************************************************************************/
-    static nlohmann::json readData(const std::string &path="/");
+    static nlohmann::json readData(const std::string &key1="", const std::string &key2="");
 
     /** ****************************************************************************************
      * @brief reads logs from json file
@@ -255,7 +256,9 @@ public:
     // ---------- LOG FUNCTIONS ----------
     void displayLogs();
     void displayWithdrawDepositLogs(const nlohmann::json &logs);
+    void displayWithdrawDepositLogsByDate();
     void displayWithdrawDepositLogsByMonth();
+    void displayWithdrawDepositLogsByYear();
 };
 
 
