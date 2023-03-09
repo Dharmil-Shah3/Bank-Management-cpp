@@ -4,8 +4,18 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
+        account.cpp \
+        accountholder.cpp \
+        admin.cpp \
         bankmanagement.cpp \
-        main.cpp
+        main.cpp \
+        staff.cpp \
+        utils.cpp
 
 HEADERS += \
-    bankmanagement.h
+    account.h \
+    accountholder.h \
+    admin.h \
+    bankmanagement.h \
+    staff.h \
+    utils.h
