@@ -20,7 +20,7 @@ protected:
 public:
     // ---------- constructor & destructor ----------
     Staff(const std::string &id, const std::string &password);
-    virtual ~Staff(){};
+    virtual ~Staff();
 
     // ---------- static methods ----------
     /** *******************************************************************************************************
@@ -44,6 +44,7 @@ public:
     void createBankAccount();
     void removeBankAccount();
     void displayBankAccountDetails();
+    void displayAccountHolderDetails();
     void withdraw();
     void deposit();
 };

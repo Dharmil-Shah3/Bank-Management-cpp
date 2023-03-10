@@ -7,7 +7,7 @@ using namespace bankerror;
 using json = nlohmann::json;
 
 // ------- CONSTRUCTOR -------
-Account::Account(long int accountNumber)
+Account::Account(const unsigned long int &accountNumber)
 {
     try {
         json data = readData("account", to_string(accountNumber));
@@ -16,7 +16,7 @@ Account::Account(long int accountNumber)
             this->accountNumber = accountNumber;
             this->balance = data["balance"];
             this->accountHolderId = data["account_holder_id"];
-            this->type = data["type"] == "s"? 's': 'c';
+            this->type = data["type"];
         } else {
             // if account NOT found
             throw ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND;
@@ -29,7 +29,7 @@ Account::Account(long int accountNumber)
 }
 
 // ------- STATIC METHODS -------
-void Account::displayAccountDetails(const long &accountNumber)
+void Account::displayAccountDetails(const unsigned long int &accountNumber)
 {
     json data = readData("account", to_string(accountNumber));
     try {
@@ -52,7 +52,7 @@ void Account::displayAccountDetails(const long &accountNumber)
     }
 }
 
-long int Account::createNewAccount(const long int &accountHolderId, const long int &balance, const string &type)
+long int Account::createNewAccount(const unsigned long int &accountHolderId, const unsigned long int &balance, const string &type)
 {
     long int accountNumber;
     try {
@@ -76,6 +76,9 @@ long int Account::createNewAccount(const long int &accountHolderId, const long i
         // adding new object in the 'account' object
         data["account"] += json::object_t::value_type(to_string(accountNumber), newAccount);
 
+        // adding bank account numbre into account holder's object for reference
+        data["account_holder"][to_string(accountHolderId)]["bank_accounts"].push_back(to_string(accountNumber));
+
         // writing data to json file
         updateData(data);
 
@@ -87,22 +90,25 @@ long int Account::createNewAccount(const long int &accountHolderId, const long i
     catch (const ERROR_ACCOUNT_HOLDER &error) {
         throw error;
     }
-    catch (const json::exception &error) {
-        cout << "\n ERROR: " << error.what() << " in Account::createNewAccount()" << endl;
+    catch (const exception &error) {
+        cout << "\n ERROR: " << endl
+             << "\t- " << error.what() << endl
+             << "\t- in function -> " << __PRETTY_FUNCTION__ << " in file -> " << __FILE__ << endl;
     }
     return 0;
 }
 
-void Account::removeAccount(const long &accountNumber, const string &staffId)
+void Account::removeAccount(const unsigned long int &accountNumber, const string &staffId)
 {
     try {
         json data = readData();
-        if(data["account"].contains(to_string(accountNumber))){ // if account found
+        if(data["account"].contains(to_string(accountNumber))) // if account found
+        {
             Account::displayAccountDetails(accountNumber);
             cout << "\n ===== ARE YOU SURE YOU WANT TO PERMENETALY DELETE THIS BANK ACCOUNT? =====" << endl;
-            cout << "\n       0) NO"
-                    "\n       1) YES";
-            short choice;
+            cout << "\n 0) NO"
+                    "\n 1) YES";
+            unsigned short choice;
 
             scanNumber(choice, "\n Enter choice: ");
             string password;
@@ -114,12 +120,26 @@ void Account::removeAccount(const long &accountNumber, const string &staffId)
                     // password validation of staff, before removing account
                     cout << "\n Enter your password: ";
                     cin >> password;
+                    cin.clear();
+
                     if (password == data["staff"][staffId]["password"]){
+                        // getting account object, to delete bank acc no. from that object
+                        string accountHolderId = to_string(data["account"][to_string(accountNumber)]["account_holder_id"]);
+
                         // removing object from json
                         short removeCount = data["account"].erase(to_string(accountNumber));
+
                         if (removeCount == 1){ // 1 element is removed
+                            // remove bank account number from account holder's object
+                            for(size_t i=0; i< data["account_holder"][accountHolderId]["bank_accounts"].size() ; i++){
+                                if(to_string(accountNumber) == data["account_holder"][accountHolderId]["bank_accounts"][i]){
+                                    data["account_holder"][accountHolderId]["bank_accounts"].erase(i);
+                                    break;
+                                }
+                            }
                             updateData(data);
                             cout << "\n => Account is REMOVED Successfully !" << endl;
+
                         }
                         else
                             throw "BANK ACCOUNT IS NOT REMOVED CORRECTLY, VERIFY AND TRY AGAIN...";
@@ -140,10 +160,9 @@ void Account::removeAccount(const long &accountNumber, const string &staffId)
         throw error;
     } catch (const char* error) {
         throw error;
-    } catch (const json::exception &error) {
-        cout << "\n ERROR (JSON): " << error.what()  << " in Account::removeAccount()" << endl;
-    } catch (const std::exception &error) {
-        cout << "\n ERROR: " << error.what()  << " in Account::removeAccount()" << endl;
+    } catch (const exception &error) {
+        cout << "\n ERROR: \n\t- " << error.what()  << endl
+             << "\t- in " << __PRETTY_FUNCTION__ << "("<< __FILE__ <<")" << endl;
     }
 }
 
@@ -159,13 +178,13 @@ string Account::getType(){ return this->type; }
 void Account::displayAccountDetails()
 {
     cout << endl << "\n =============== ACCOUNT DETAILS ===============\n" << endl;
-    cout << "\tAccount Number : " << accountNumber << endl;
-    cout << "\tAccount Holder : " << accountHolderId << endl;
-    cout << "\tBalance        : Rs." << balance << endl;
-    cout << "\tAccount Type   : " << type << endl;
+    cout << "  Account Number : " << accountNumber << endl;
+    cout << "  Account Holder : " << accountHolderId << endl;
+    cout << "  Balance        : Rs." << balance << endl;
+    cout << "  Account Type   : " << type << endl;
 }
 
-void Account::withdraw(const long int &amount, const std::string &staffId)
+void Account::withdraw(const unsigned long int &amount, const std::string &staffId)
 {
     try {
         if(this->balance < amount){ //  insufficient balance
@@ -187,16 +206,16 @@ void Account::withdraw(const long int &amount, const std::string &staffId)
         this->balance -= amount;
         cout << "\n => Rs." << amount << " is Debited from account_number " << this->accountNumber << endl
              << " => Current Available balance is Rs." << this->balance << endl;
-    } catch (const ERROR_BANK_ACCOUNT &error){
+    }
+    catch (const ERROR_BANK_ACCOUNT &error){
         throw error;
-    } catch (const json::exception &error){
-        cout << "\n ERROR (JSON): " << error.what() << " in Account::withdraw()" << endl;
-    } catch (const std::exception &error) {
-        cout << "\n ERROR: " << error.what() << " in Account::withdraw()" << endl;
+    }
+    catch (const exception &error) {
+        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << "("<< __FILE__ <<")" << endl;
     }
 }
 
-void Account::deposit(const long int &amount, const std::string &staffId)
+void Account::deposit(const unsigned long int &amount, const std::string &staffId)
 {
     try {
         // reading data from json file
@@ -211,7 +230,7 @@ void Account::deposit(const long int &amount, const std::string &staffId)
         cout << "\n => Rs." << amount << " is Credited to account_number " << this->accountNumber << endl
              << " => Current Available balance is Rs." << this->balance << endl;
     } catch (const exception &error){
-        cout << "\n ERROR: " << error.what() << " in Account::deposit()" << endl;
+        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << "("<< __FILE__ <<")" << endl;
     }
 }
 // ======================================= END ACCOUNT ======================================

@@ -19,6 +19,9 @@ AccountHolder::AccountHolder(const long int &accountHolderId)
             this->name = accountHolder["name"];
             this->mobile = accountHolder["mobile"];
             this->address = accountHolder["address"];
+            for(size_t i=0; i<accountHolder["bank_accounts"].size(); i++){ // bank account ids
+                bankAccounts.push_back(accountHolder["bank_accounts"][i]);
+            }
         }
     } catch (const ERROR_ACCOUNT_HOLDER &error) {
         /// @todo handle it

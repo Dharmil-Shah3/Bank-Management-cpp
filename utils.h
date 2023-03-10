@@ -40,7 +40,7 @@ namespace bankerror
 {
     const std::string NOT_FOUND = "NO USER FOUND WITH THE GIVEN USERID";
     const std::string BANK_ACC_NOT_FOUND = "NO BANK ACCOUNT FOUND WITH GIVEN ACCOUNT NUMBER";
-    const std::string INVALID_PASS = "INVALID PASSWORD ENTERED";
+    const std::string INVALID_PASS = "INCORRECT PASSWORD IS ENTERED";
 
 
     /** ************************************************************

@@ -13,6 +13,7 @@ private:
     std::string name;
     std::string mobile;
     std::string address;
+    std::vector<std::string> bankAccounts;
 
 public:
     // constructor & destructor

@@ -13,6 +13,7 @@ Staff::Staff(const string &id, const string &password)
     json staff = readData("staff");
     if (staff.contains(id)){ // staff found
         if(staff[id]["password"] != password){ // invalid password
+            this->~Staff();
             throw ERROR_STAFF::INVALID_PASSWORD;
         }
 
@@ -31,9 +32,12 @@ Staff::Staff(const string &id, const string &password)
         this->address     = trim(address, "\"");
         this->salary      = staff[id]["salary"];
     } else {
+        this->~Staff();
         throw ERROR_STAFF::STAFF_NOT_FOUND;
     }
 }
+
+Staff::~Staff(){ cout << "\n Staff destroyed" << endl; getc(stdin); getc(stdin); }
 
 // -------------- STATIC METHODS --------------
 Staff* Staff::login(const string &userid, const string &password)
@@ -63,12 +67,14 @@ void Staff::displayPanel()
     while(choice != 0){
         cout << "\n ----------- STAFF PANEL -----------\n" << endl;
         cout << " 1) Display Your Details " << endl;
-        cout << " 2) Update Your Info" << endl;
+        cout << " 2) Update Your Info" << endl << endl;
         cout << " 3) Create Bank Account" << endl;
         cout << " 4) Remove Bank Account" << endl;
         cout << " 5) Display Bank Account Details" << endl;
         cout << " 6) Withdraw Money" << endl;
-        cout << " 7) Deposite Money" << endl;
+        cout << " 7) Deposite Money" << endl << endl;
+        cout << " 8) Add New Account Holder" << endl;
+        cout << " 9) Display Account Holder Details" << endl << endl;
         cout << " 0) Logout" << endl;
         scanNumber(choice, " => Enter Choice: ");
 
@@ -91,6 +97,10 @@ void Staff::displayPanel()
             case 6: this->withdraw();
                 break;
             case 7: this->deposit();
+                break;
+            case 8: this->createAccountHolder();
+                break;
+            case 9: this->displayAccountHolderDetails();
                 break;
             default:
                 cout << "\n Invalid choice !" << endl;
@@ -201,13 +211,47 @@ void Staff::displayBankAccountDetails()
     }
 }
 
+void Staff::displayAccountHolderDetails()
+{
+    long int accountHolderId;
+    cout << "\n ======== ACCOUNT HOLDER DEATILS ========" << endl;
+    scanNumber(accountHolderId, " Enter Account Holder Id: ");
+
+    try {
+        json accountHolder = readData("account_holder", to_string(accountHolderId));
+
+        if(accountHolder.empty()){
+            throw ERROR_ACCOUNT_HOLDER::USER_NOT_FOUND;
+        } else {
+            string name = accountHolder["name"];
+            string mobile = accountHolder["mobile"];
+            string address = accountHolder["address"];
+
+            cout << "\n Id            : " << accountHolderId << endl
+                 << " Name          : " << trim(name, "\"") << endl
+                 << " Mobile Number : " << trim(mobile, "\"") << endl
+                 << " Address       : " << trim(address, "\"") << endl
+                 << " Bank Accounts : " << accountHolder["bank_accounts"] << endl;
+        }
+    } catch (const ERROR_ACCOUNT_HOLDER &error) {
+        if(error == ERROR_ACCOUNT_HOLDER::USER_NOT_FOUND)
+            cout << "\n ERROR: NO ACCOUNT HOLDER FOUND WITH ID \"" << accountHolderId << "\"" << endl;
+    } catch (const exception &error) {
+        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<< __FILE__ <<")" << endl;
+    }
+
+    getchar();
+    getc(stdin);
+    system("clear");
+}
+
 long int Staff::createAccountHolder()
 {
     /// @todo test this function
     string name, address, mobile;
     system("clear");
     cout << "====== ENTER ACCOUNT HOLDER DETAILS ======" << endl
-         << " => Enter 0(zero) to cancle..." << endl;
+         << " => Enter Zero(0) to cancle..." << endl;
 
     try {
         cin.ignore();
@@ -258,8 +302,8 @@ void Staff::createBankAccount()
 
     try {
         // ---------- Getting Account Holder Id ----------
-        while(1){
-            scanNumber(accountHolderId, "\n Enter account holder id: ");
+        while(1){ // iterate until valid account holder id is entered
+            scanNumber(accountHolderId, " => Enter account holder id for new bank account: ");
             json accountHolder = readData("account_holder", to_string(accountHolderId));
 
             // if account holder not found
@@ -279,14 +323,17 @@ void Staff::createBankAccount()
                             continue;
                         }
                         break;
-                    } else if( choice == 2){
-                        continue;
-                    } else if( choice == 3){
+                    } else if(choice == 2){
+                        break;
+                    } else if(choice == 3){
                         return;
                     } else {
                         cout << "\n => ERROR: invalid choice entered..." << endl;
                     }
                 }
+            }
+            else { // valid account holder is found
+                break;
             }
         }
 
@@ -294,20 +341,27 @@ void Staff::createBankAccount()
         while(1){
             cout << "\n => ACCOUNT TYPE <=" << endl
                  << "\n    1) Savings"
-                    "\n    2) Current";
+                    "\n    2) Current"
+                    "\n    0) Cancle";
             scanNumber(choice, "\n Enter choice: ");
 
-            if(choice == 1 || choice == 2){
+            if(choice == 0){
+                cout << "\n => Operation cancelled : add new account holder" << endl;
+                getc(stdin);
+                return;
+            }
+            else if(choice == 1 || choice == 2){
                 accountType = (choice == 1? "Saving": "Current");
                 break;
             }
             else cout << "\n => ERROR: invalid choice entered..." << endl;
         }
 
+        // -------- initial bank balance --------
         scanNumber(balance, " Enter Initial balance: ");
 
-        while(balance < 1){
-            cout << "\n ERROR: negative value is entered. please enter valid amount..." << endl;
+        while(balance < 1){ // if invalid amount is entered
+            cout << "\n ERROR: negative or zero amount is entered. please enter valid amount..." << endl;
             scanNumber(balance, " Enter Initial balance: ");
         }
 
@@ -324,7 +378,9 @@ void Staff::createBankAccount()
             cout << "\n ERROR: NO ACCOUNT HOLDER FOUND WITH ID " << accountHolderId << endl;
     }
     catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        cout << "\n ERROR: " << endl
+             << "\t- " << error.what() << endl
+             << "\t- in function -> " << __PRETTY_FUNCTION__ << " in file -> "<< __FILE__ << endl;
     }
 }
 
