@@ -20,7 +20,7 @@ protected:
 public:
     // ---------- constructor & destructor ----------
     Staff(const std::string &id, const std::string &password);
-    virtual ~Staff();
+    virtual ~Staff(){};
 
     // ---------- static methods ----------
     /** *******************************************************************************************************

@@ -13,7 +13,6 @@ Staff::Staff(const string &id, const string &password)
     json staff = readData("staff");
     if (staff.contains(id)){ // staff found
         if(staff[id]["password"] != password){ // invalid password
-            this->~Staff();
             throw ERROR_STAFF::INVALID_PASSWORD;
         }
 
@@ -32,18 +31,16 @@ Staff::Staff(const string &id, const string &password)
         this->address     = trim(address, "\"");
         this->salary      = staff[id]["salary"];
     } else {
-        this->~Staff();
         throw ERROR_STAFF::STAFF_NOT_FOUND;
     }
 }
 
-Staff::~Staff(){ cout << "\n Staff destroyed" << endl; getc(stdin); getc(stdin); }
-
 // -------------- STATIC METHODS --------------
 Staff* Staff::login(const string &userid, const string &password)
 {
+    Staff *staff = NULL;
     try {
-        Staff *staff = new Staff(userid, password);
+        staff = new Staff(userid, password);
         return staff;
     }
     catch (const ERROR_STAFF &error) {
@@ -51,12 +48,14 @@ Staff* Staff::login(const string &userid, const string &password)
             cout << "\n ERROR: NO STAFF MEMBER FOUND WITH ID \""<< userid << "\"" << endl;
         else if(error == ERROR_STAFF::INVALID_PASSWORD)
             cout << "\n ERROR: INVALID PASSWORD. TRY AGAIN..." << endl;
-        return NULL;
     }
     catch (const exception & error) {
-        perror("\n ERROR: ");
-        return NULL;
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " << __PRETTY_FUNCTION__ << endl
+             << "\t- in file -> " << __FILE__ << endl;
     }
+    delete staff;
+    return NULL;
 }
 
 // -------------- METHODS --------------
