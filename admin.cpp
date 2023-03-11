@@ -19,6 +19,9 @@ Admin::Admin(const string &adminId, const string &password) : Staff(adminId, pas
     } catch (const exception &error){
         this->~Admin();
         throw error;
+    } catch (...) {
+        this->~Admin();
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -33,20 +36,21 @@ Admin* Admin::login(const string &userid, const string &password)
     catch (const ERROR_STAFF & error) {
         switch (error) {
             case ERROR_STAFF::STAFF_NOT_FOUND:
-                cout << "\n ERROR: NO STAFF MEMBER FOUND WITH ID \""<< userid << "\"" << endl;
+                cerr << "\n ERROR: " << errmsg::STAFF_NOT_FOUND << endl;
                 break;
             case ERROR_STAFF::INVALID_PASSWORD:
-                cout << "\n ERROR: INVALID PASSWORD. TRY AGAIN..." << endl;
+                cerr << "\n ERROR: " << errmsg::INVALID_PASSWORD << endl;
                 break;
             case ERROR_STAFF::NOT_AN_ADMIN:
-                cout << "\n ERROR: \""<< userid <<"\" IS NOT AN ADMIN"<< endl;
+                cout << "\n ERROR: " << errmsg::NOT_AN_ADMIN << endl;
                 break;
         }
     }
     catch (const exception & error) {
-        cout << "\n ERROR: " << error.what() << endl
-             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
-             << "\t- int file -> "<<__FILE__<< endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    }
+    catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
     delete admin;
     return NULL;
@@ -54,20 +58,33 @@ Admin* Admin::login(const string &userid, const string &password)
 
 bool Admin::isAdmin(const string &id)
 {
-    json admins = readData("admin");
-    for(auto& admin: admins.items()){
-        if(id == admin.value()) return true;
+    try {
+        json admins = readData("admin");
+        for(auto& admin: admins.items()){
+            if(id == admin.value())
+                return true;
+        }
+    } catch (const exception &error) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
     return false;
 }
 
 void Admin::displayStaffDetails(const std::string &staffId)
 {
-    json staff = readData("staff", staffId);
-    if(!staff.empty()){
-        Staff(staffId, staff["password"]).displayStaffDetails();
-    } else {
-        cout << "\n ERROR: NO STAFF MEMBER FOUND WITH ID \""<< staffId << "\"" << endl;
+    try {
+        json staff = readData("staff", staffId);
+        if(!staff.empty()){
+            Staff(staffId, staff["password"]).displayStaffDetails();
+        } else {
+            cerr << "\n ERROR: " << errmsg::STAFF_NOT_FOUND << endl;
+        }
+    } catch (const exception &error) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -149,10 +166,10 @@ void Admin::displayWithdrawDepositLogs(const json &dateLogs, const string &month
                  << ":" << setw(2) << to_string(value["time"]["minute"])
                  << ":" << setw(2) << to_string(value["time"]["second"]) << " |" << setfill(' ')<< endl;
         }
-    } catch (const json::exception &error) {
-        cout << "\n ERROR (JSON): " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -163,42 +180,48 @@ void Admin::displayPanel()
     string input; // for scan staff id and name
     system("clear");
 
-    while(choice != 0){
-        cout << "\n ----------- ADMIN PANEL -----------\n" << endl;
-        cout << " 1) Display Your Details " << endl;
-        cout << " 2) Update Your Info" << endl;
-        cout << " 3) Search Staff" << endl;
-        cout << " 4) Update Staff Details" << endl;
-        cout << " 5) Add New Staff" << endl;
-        cout << " 6) Remove Staff" << endl;
-        cout << " 7) Display Staff Menu" << endl;
-        cout << " 8) Display Logs" << endl;
-        cout << " 0) Logout" << endl;
-        scanNumber(choice, " => Enter Choice: ");
+    try {
+        while(choice != 0){
+            cout << "\n ----------- ADMIN PANEL -----------\n" << endl;
+            cout << " 1) Display Your Details " << endl;
+            cout << " 2) Update Your Info" << endl;
+            cout << " 3) Search Staff" << endl;
+            cout << " 4) Update Staff Details" << endl;
+            cout << " 5) Add New Staff" << endl;
+            cout << " 6) Remove Staff" << endl;
+            cout << " 7) Display Staff Menu" << endl;
+            cout << " 8) Display Logs" << endl;
+            cout << " 0) Logout" << endl;
+            scanNumber(choice, " => Enter Choice: ");
 
-        switch (choice) {
-            case 0: system("clear"); return;
-            case 1:
-                Staff::displayStaffDetails();
-                getc(stdin);
-                break;
-            case 2: this->updateAccountDetails(); break;
-            case 3: this->searchStaff(); break;
-            case 4:
-                cout << "\n Enter Staff id: ";
-                cin.ignore();
-                getline(cin, input);
-                this->updateStaffDetails(input);
-                break;
-            case 5: this->addStaff(); break;
-            case 6: this->removeStaff(); break;
-            case 7: this->Staff::displayPanel(); break;
-            case 8: this->displayLogs(); break;
-            default: cout << "\n => Invalid choice entered..." << endl;
+            switch (choice) {
+                case 0: system("clear"); return;
+                case 1:
+                    Staff::displayStaffDetails();
+                    getc(stdin);
+                    break;
+                case 2: this->updateAccountDetails(); break;
+                case 3: this->searchStaff(); break;
+                case 4:
+                    cout << "\n Enter Staff id: ";
+                    cin.ignore();
+                    getline(cin, input);
+                    this->updateStaffDetails(input);
+                    break;
+                case 5: this->addStaff(); break;
+                case 6: this->removeStaff(); break;
+                case 7: this->Staff::displayPanel(); break;
+                case 8: this->displayLogs(); break;
+                default: cout << "\n => Invalid choice entered..." << endl;
+            }
         }
-        getc(stdin);
-        system("clear");
+    } catch (const exception &error) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
+    getc(stdin);
+    system("clear");
 }
 
 void Admin::displayLogs()
@@ -282,9 +305,9 @@ void Admin::displayWithdrawDepositLogsByDate()
         sleep(1); // sleep for 1 second
     } // end while
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << endl
-             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
-             << "\t- in file -> " <<__FILE__<< endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -350,9 +373,9 @@ void Admin::displayWithdrawDepositLogsByMonth()
         sleep(1); // sleep for 1 second
     } // end while
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << endl
-             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
-             << "\t- in file -> " <<__FILE__<< endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -419,14 +442,16 @@ void Admin::displayWithdrawDepositLogsByYear()
     } catch(const string &error) {
         cout << "ERROR: " << error << endl;
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << endl
-             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
-             << "\t- in file -> " <<__FILE__<< endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
 void Admin::searchStaffDetailsByName(string &inputName)
 {
+    try {
+
     json allStaff = readData("staff");
     trim(inputName);
     transform(inputName.begin(), inputName.end(), inputName.begin(), ::tolower);
@@ -462,78 +487,101 @@ void Admin::searchStaffDetailsByName(string &inputName)
             recordsFound++;
         }
     }
-    cout << " -------------------------------------------------------------------------------------------------------------" << endl
-         << "\n => TOTAL RECORDS FOUND: " << recordsFound << endl;
+    if(recordsFound != 0) {
+        cout << " -------------------------------------------------------------------------------------------------------------" << endl
+             << "\n => TOTAL RECORDS FOUND: " << recordsFound << endl;
+    } else {
+        throw "NO STAFF FOUND WITH THE GIVEN NAME OR SURNAME";
+    }
+    } // end of try
+    catch (const char *error) {
+        cerr << "\n ERROR: " << error << endl;
+    }
+    catch (const exception &error) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    }
+    catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
+    }
 }
 
 void Admin::updateStaffDetails(const string &staffId)
 {
-    json data = readData();
+    try {
+        json data = readData();
 
-    if(data["staff"].contains(staffId)){
-        short choice;
-        while(1){
-            displayStaffDetails(staffId);
-            cout << "\n ================ WHAT TO UPDATE ==================\n" << endl
-                 << " 1) Name" << endl
-                 << " 2) Salary" << endl
-                 << " 3) Designation" << endl
-                 << " 4) Branch id" << endl
-                 << " 5) Address" << endl
-                 << " 6) Password" << endl
-                 << " 7) Mobile" << endl
-                 << " 8) Email" << endl
-                 << " 0) Cancle" << endl;
+        if(data["staff"].contains(staffId)){
+            short choice;
+            while(1){
+                displayStaffDetails(staffId);
+                cout << "\n ================ WHAT TO UPDATE ==================\n" << endl
+                     << " 1) Name" << endl
+                     << " 2) Salary" << endl
+                     << " 3) Designation" << endl
+                     << " 4) Branch id" << endl
+                     << " 5) Address" << endl
+                     << " 6) Password" << endl
+                     << " 7) Mobile" << endl
+                     << " 8) Email" << endl
+                     << " 0) Cancle" << endl;
 
-            scanNumber(choice, " Enter Choice: ");
+                scanNumber(choice, " Enter Choice: ");
 
-            string fieldToUpdate;
-            switch (choice) {
-                case 0: return;
-                case 1: fieldToUpdate = "name"; break;
-                case 2: fieldToUpdate = "salary"; break;
-                case 3: fieldToUpdate = "designation"; break;
-                case 4: fieldToUpdate = "branch_id"; break;
-                case 5: fieldToUpdate = "address"; break;
-                case 6: fieldToUpdate = "password"; break;
-                case 7: fieldToUpdate = "mobile"; break;
-                case 8: fieldToUpdate = "email"; break;
-            }
-
-            if (choice == 2 || choice == 4){ // if value to update is numerical
-                int newValue;
-                scanNumber(newValue, " Enter New Value: ");
-                updateData(data, data["staff"][staffId][fieldToUpdate], newValue);
-            }
-            else if (choice >= 1 && choice <= 8){ // if value to update is string
-                string newValue;
-                if (choice == 3) // if designation is selected for update, then get new value from function.
-                    newValue = selectDesignation();
-                else { // else get it normally
-                    cout << " Enter New Value: ";
-                    cin.ignore();
-                    getline(cin, newValue);
+                string fieldToUpdate;
+                switch (choice) {
+                    case 0: return;
+                    case 1: fieldToUpdate = "name"; break;
+                    case 2: fieldToUpdate = "salary"; break;
+                    case 3: fieldToUpdate = "designation"; break;
+                    case 4: fieldToUpdate = "branch_id"; break;
+                    case 5: fieldToUpdate = "address"; break;
+                    case 6: fieldToUpdate = "password"; break;
+                    case 7: fieldToUpdate = "mobile"; break;
+                    case 8: fieldToUpdate = "email"; break;
                 }
 
-                // Validating inputs
-                if( ( fieldToUpdate=="name"     && ! isNameValid(newValue) )     ||
-                    ( fieldToUpdate=="password" && ! isPasswordValid(newValue) ) ||
-                    ( fieldToUpdate=="mobile"   && ! isMobileValid(newValue) )   ||
-                    ( fieldToUpdate=="email"    && ! isEmailValid(newValue) ))
-                { return; }
-                updateData(data, data["staff"][staffId][fieldToUpdate], newValue);
-            }
-            else { // invalid menu choice
-                cout << "\n => Invalid choice entered..." << endl;
-                getc(stdin);
-                continue;
-            }
-        } // end of while(1)
+                if (choice == 2 || choice == 4){ // if value to update is numerical
+                    int newValue;
+                    scanNumber(newValue, " Enter New Value: ");
+                    updateData(data, data["staff"][staffId][fieldToUpdate], newValue);
+                }
+                else if (choice >= 1 && choice <= 8){ // if value to update is string
+                    string newValue;
+                    if (choice == 3) // if designation is selected for update, then get new value from function.
+                        newValue = selectDesignation();
+                    else { // else get it normally
+                        cout << " Enter New Value: ";
+                        cin.ignore();
+                        getline(cin, newValue);
+                    }
+
+                    // Validating inputs
+                    if( ( fieldToUpdate=="name"     && ! isNameValid(newValue) )     ||
+                        ( fieldToUpdate=="password" && ! isPasswordValid(newValue) ) ||
+                        ( fieldToUpdate=="mobile"   && ! isMobileValid(newValue) )   ||
+                        ( fieldToUpdate=="email"    && ! isEmailValid(newValue) ))
+                    { return; }
+                    updateData(data, data["staff"][staffId][fieldToUpdate], newValue);
+                }
+                else { // invalid menu choice
+                    cout << "\n => Invalid choice entered..." << endl;
+                    getc(stdin);
+                    continue;
+                }
+            } // end of while(1)
+        }
+        else {
+            throw ERROR_STAFF::STAFF_NOT_FOUND;
+        }
     }
-    else {
-        cout << "\n ERROR: NO STAFF FOUND WITH ID \"" << staffId << "\" !" << endl;
-        getc(stdin);
+    catch (const ERROR_STAFF &error) {
+        cerr << "\n ERROR: " << errmsg::STAFF_NOT_FOUND << endl;
+    } catch (const exception &error) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
+    getc(stdin);
 }
 
 void Admin::addStaff()
@@ -541,119 +589,133 @@ void Admin::addStaff()
     string name, address, email, mobile, designation, password;
     int salary, branch_id;
 
-    cout << "\n========== ENTER DETAILS OF STAFF ==========" << endl;
-    cin.ignore();
+    try {
+        cout << "\n========== ENTER DETAILS OF STAFF ==========" << endl;
+        cin.ignore();
 
-    cout << "\n Enter Name: ";
-    getline(cin, name);
-    cout << "\n Enter Address: ";
-    getline(cin, address);
-    cout << "\n Enter Mobile: ";
-    getline(cin, mobile);
-    cout << "\n Enter Email: ";
-    getline(cin, email);
-    designation = selectDesignation();
+        cout << "\n Enter Name: ";
+        getline(cin, name);
+        cout << "\n Enter Address: ";
+        getline(cin, address);
+        cout << "\n Enter Mobile: ";
+        getline(cin, mobile);
+        cout << "\n Enter Email: ";
+        getline(cin, email);
+        designation = selectDesignation();
 
-    scanNumber(branch_id, " Enter Branch id: ");
-    scanNumber(salary, " Enter Salary: ");
-    cin.ignore();
+        scanNumber(branch_id, " Enter Branch id: ");
+        scanNumber(salary, " Enter Salary: ");
+        cin.ignore();
 
-    cout << "\n Enter password for staff's account: ";
-    getline(cin, password);
+        cout << "\n Enter password for staff's account: ";
+        getline(cin, password);
 
-    // validating inputs
-    if( isNameValid(name)         &&
-        isPasswordValid(password) &&
-        isEmailValid(email)       &&
-        isMobileValid(mobile)     &&
-        isAddressValid(address))
-    {
-        // push the data into JSON file
-        json data = readData();
-        json newStaff = {
-            {"address", address},
-            {"branch_id", branch_id},
-            {"designation", designation},
-            {"email", email},
-            {"mobile", mobile},
-            {"name", name},
-            {"password", password},
-            {"salary", salary},
-        };
+        // validating inputs
+        if( isNameValid(name)         &&
+            isPasswordValid(password) &&
+            isEmailValid(email)       &&
+            isMobileValid(mobile)     &&
+            isAddressValid(address))
+        {
+            // push the data into JSON file
+            json data = readData();
+            json newStaff = {
+                {"address", address},
+                {"branch_id", branch_id},
+                {"designation", designation},
+                {"email", email},
+                {"mobile", mobile},
+                {"name", name},
+                {"password", password},
+                {"salary", salary},
+            };
 
-        // creating staff-id for new staff member.
-        int staffNumber = data["last_staff_number"];
-        staffNumber++;
+            // creating staff-id for new staff member.
+            int staffNumber = data["last_staff_number"];
+            staffNumber++;
 
-        string staffId = "bank"; // adding prefix 'bank' to userid, so it will look like 'bank0001'
+            string staffId = "bank"; // adding prefix 'bank' to userid, so it will look like 'bank0001'
 
-        ostringstream staffIdWithLeadindZeors;
-        if(staffNumber <= 9999){ // adding leading zeros to new staff id
-            staffId += to_string(staffNumber);
-            staffIdWithLeadindZeors << setw(4) << setfill('0') << to_string(staffNumber);
+            ostringstream staffIdWithLeadindZeors;
+            if(staffNumber <= 9999){ // adding leading zeros to new staff id
+                staffId += to_string(staffNumber);
+                staffIdWithLeadindZeors << setw(4) << setfill('0') << to_string(staffNumber);
+            }
+            else {
+                throw "STAFF LIMIT OUT OF BOUND";
+            }
+
+            data["staff"].push_back(json::object_t::value_type(staffIdWithLeadindZeors.str(), newStaff));
+            data["last_staff_number"] = staffNumber;
+            updateData(data);
+
+            cout << "\n => NEW STAFF ADDED SUCCESSFULLY..." << endl;
+            displayStaffDetails(staffId);
         }
-        else {
-            cout << "\n ERROR: STAFF LIMIT OUT OF BOUND" << endl;
-            return;
-        }
-
-        data["staff"].push_back(json::object_t::value_type(staffIdWithLeadindZeors.str(), newStaff));
-        data["last_staff_number"] = staffNumber;
-        updateData(data);
-
-        cout << "\n => NEW STAFF ADDED SUCCESSFULLY..." << endl;
-        displayStaffDetails(staffId);
+    } catch (const char *error) {
+        cerr << "\n ERROR: " << error << endl;
+    } catch (const exception &error) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
 void Admin::removeStaff()
 {
     string staffIdToRemove;
-    cout << "\n======== REMOVE STAFF ========" << endl;
-    cout << "\n Enter Staff Id To Remove: ";
-    cin >> staffIdToRemove;
 
-    // ---------- VARIFICATION ----------
-    if (staffIdToRemove == this->id){
-        cout << "\n ERROR: CAN'T REMOVE STAFF, THIS IS YOUR ID" << endl;
-        getc(stdin);
-        return;
-    }
-    else if (Admin::isAdmin(staffIdToRemove)){
-        cout << "\n ERROR: CAN'T REMOVE STAFF, GIVEN STAFF ID AS AN ADMIN" << endl;
-        getc(stdin);
-        return;
-    }
+    try {
+        cout << "\n======== REMOVE STAFF ========" << endl;
+        cout << "\n Enter Staff Id To Remove: ";
+        cin >> staffIdToRemove;
 
-    json data = readData();
-
-    if(data["staff"].contains(staffIdToRemove)){
-        string password = "";
-        short count = 0;
-        displayStaffDetails(staffIdToRemove); // Displaying details of staff that is going to be removed
-
-        // for password varification, looping is used here. Asking password 3 times if incorrect.
-        while(1){
-            cout << "\n Enter your password to delete staff: ";
-            cin >> password;
-
-            if(data["staff"][this->id]["password"] != password){
-                if(count == 3){
-                    cout << "\n ERROR: 3 times incorrect password is entered..." << endl;
-                    break;
-                }
-                cout << "\n ERROR: INCORRECT PASSWORD !" << endl;
-                count++;
-                continue;
-            }
-            data["staff"].erase(staffIdToRemove);
-            updateData(data);
-            cout << "\n => STAFF IS DELETED SUCCESSFULLY..." << endl;
-            break;
+        // ---------- VARIFICATION ----------
+        if (staffIdToRemove == this->id){
+            throw "CAN'T REMOVE STAFF, THIS IS YOUR ID";
         }
-    }
-    else {
-        cout << "\n ERROR: NO STAFF FOUND WITH ID \"" << staffIdToRemove << "\"" << endl;
+        else if (Admin::isAdmin(staffIdToRemove)){
+            throw "CAN'T REMOVE STAFF, GIVEN STAFF ID AS AN ADMIN";
+        }
+
+        json data = readData();
+
+        if(data["staff"].contains(staffIdToRemove)){
+            string password = "";
+            short count = 0;
+            displayStaffDetails(staffIdToRemove); // Displaying details of staff that is going to be removed
+
+            // for password varification, looping is used here. Asking password 3 times if incorrect.
+            while(1){
+                cout << "\n Enter your password to delete staff: ";
+                cin >> password;
+
+                if(data["staff"][this->id]["password"] != password){
+                    if(count == 3){
+                        cout << "\n ERROR: 3 times incorrect password is entered..." << endl;
+                        break;
+                    }
+                    cout << "\n ERROR: INCORRECT PASSWORD !" << endl;
+                    count++;
+                    continue;
+                }
+                data["staff"].erase(staffIdToRemove);
+                updateData(data);
+                cout << "\n => STAFF IS DELETED SUCCESSFULLY..." << endl;
+                break;
+            }
+        }
+        else {
+            throw ERROR_STAFF::STAFF_NOT_FOUND;
+        }
+    } catch (const ERROR_STAFF &error) {
+        cerr << "\n ERROR: " << errmsg::STAFF_NOT_FOUND << endl;
+    } catch (const char *error) {
+        cerr << "\n ERROR: " << error << endl;
+    } catch (const exception &error){
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
     getc(stdin);
 }

@@ -10,22 +10,37 @@ void handleBankLogin(const BANK_USER_ROLES & role);
 
 int main()
 {
-    short choice = 1;
-    while(choice != 0){
-        cout << "\n=-=-=-=-=-= LOGIN =-=-=-=-=-=\n" << endl;
-        cout << "  1) Admin" << endl;
-        cout << "  2) Staff" << endl;
-        cout << "  3) Account Holder" << endl;
-        cout << "  0) EXIT" << endl;
-        scanNumber(choice, "  Enter Choice: ");
+    try {
+        short choice;
+        BANK_USER_ROLES role;
 
-        switch (choice) {
-            case 0: exit(0);
-            case 1: handleBankLogin(BANK_USER_ROLES::ADMIN); break;
-            case 2: handleBankLogin(BANK_USER_ROLES::STAFF); break;
-            case 3: handleBankLogin(BANK_USER_ROLES::ACCOUNT_HOLDER); break;
-            default: cout << "\n  ERROR: INPUT IN RANGE 0-2" << endl;
+        while(true){
+            cout << "\n=-=-=-=-=-= LOGIN =-=-=-=-=-=\n" << endl;
+            cout << "  1) Admin" << endl;
+            cout << "  2) Staff" << endl;
+            cout << "  3) Account Holder" << endl;
+            cout << "  0) EXIT" << endl;
+            scanNumber(choice, "  Enter Choice: ");
+
+            switch (choice) {
+                case 0: exit(0);
+                case 1: role = ADMIN; break;
+                case 2: role = STAFF; break;
+                case 3: role = ACCOUNT_HOLDER; break;
+                default:
+                    cout << "\n  ERROR: INPUT IN RANGE 0-2" << endl;
+                    continue;
+            }
+            handleBankLogin(role);
         }
+    }
+    catch (const exception &error) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+        return 1;
+    }
+    catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
+        return 1;
     }
     return 0;
 }
@@ -68,7 +83,7 @@ void handleBankLogin(const BANK_USER_ROLES &role)
 
         string userid, password;
         cout << "\n----------- "
-             << (role == BANK_USER_ROLES::ADMIN ? "ADMIN": (role == BANK_USER_ROLES::STAFF ? "STAFF": "ACCOUNT HOLDER"))
+             << (role == ADMIN ? "ADMIN": (role == STAFF ? "STAFF": "ACCOUNT HOLDER"))
              <<" LOGIN -----------\n" << endl;
 
         cout << " => Enter userid: ";
@@ -77,9 +92,10 @@ void handleBankLogin(const BANK_USER_ROLES &role)
         cin >> password;
 
         switch (role) {
-            case BANK_USER_ROLES::ADMIN: user = Admin::login(userid, password); break;
-            case BANK_USER_ROLES::STAFF: user = Staff::login(userid, password); break;
-            case BANK_USER_ROLES::ACCOUNT_HOLDER: cout << "\n ERROR: work in progress..." << endl;
+            case ADMIN: user = Admin::login(userid, password); break;
+            case STAFF: user = Staff::login(userid, password); break;
+            case ACCOUNT_HOLDER:
+                cout << "\n ERROR: work in progress..." << endl;
                 delete user;
                 return;
             default: cout << "\n ERROR: INVALID LOGIN CHOICE" << endl;
@@ -95,6 +111,8 @@ void handleBankLogin(const BANK_USER_ROLES &role)
         break;                  // because operation is done and user is logged out
     }
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }

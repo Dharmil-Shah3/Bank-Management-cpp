@@ -19,7 +19,7 @@ Account::Account(const unsigned long int &accountNumber)
             this->type = data["type"];
         } else {
             // if account NOT found
-            throw ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND;
+            throw ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND;
         }
     } catch (const ERROR_BANK_ACCOUNT &error) {
         this->~Account();
@@ -36,7 +36,7 @@ void Account::displayAccountDetails(const unsigned long int &accountNumber)
     json data = readData("account", to_string(accountNumber));
     try {
         if (data.empty()){ // if account not found
-            throw ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND;
+            throw ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND;
         }
         else {
             string type = data["type"];
@@ -47,7 +47,6 @@ void Account::displayAccountDetails(const unsigned long int &accountNumber)
             cout << " Account Type          : " << trim(type, "\"") << endl;
         }
     } catch (const ERROR_BANK_ACCOUNT &error) {
-        /// @todo handle it everywhere else
         throw error;
     } catch (const exception &error) {
         throw error;
@@ -69,7 +68,7 @@ long int Account::createNewAccount(const unsigned long int &accountHolderId, con
 
         // account holder not found
         if(! data["account_holder"].contains(to_string(accountHolderId))){
-            throw ERROR_ACCOUNT_HOLDER::USER_NOT_FOUND;
+            throw ERROR_ACCOUNT_HOLDER::ACC_HOLDER_NOT_FOUND;
         }
 
         // getting count of accounts to get new account id
@@ -88,14 +87,10 @@ long int Account::createNewAccount(const unsigned long int &accountHolderId, con
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
         throw error;
-    }
-    catch (const ERROR_ACCOUNT_HOLDER &error) {
+    } catch (const ERROR_ACCOUNT_HOLDER &error) {
         throw error;
-    }
-    catch (const exception &error) {
-        cout << "\n ERROR: " << endl
-             << "\t- " << error.what() << endl
-             << "\t- in function -> " << __PRETTY_FUNCTION__ << " in file -> " << __FILE__ << endl;
+    } catch (const exception &error) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
     }
     return 0;
 }
@@ -154,7 +149,7 @@ void Account::removeAccount(const unsigned long int &accountNumber, const string
             }
         }
         else { // if account not found
-            throw ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND;
+            throw ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND;
         }
     } catch (const ERROR_BANK_ACCOUNT &error) {
         throw error;
@@ -163,9 +158,7 @@ void Account::removeAccount(const unsigned long int &accountNumber, const string
     } catch (const char* error) {
         throw error;
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << endl
-             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
-             << "\t- in file -> " <<__FILE__<< endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
     }
 }
 
@@ -209,14 +202,12 @@ void Account::withdraw(const unsigned long int &amount, const std::string &staff
         this->balance -= amount;
         cout << "\n => Rs." << amount << " is Debited from account_number " << this->accountNumber << endl
              << " => Current Available balance is Rs." << this->balance << endl;
-    }
-    catch (const ERROR_BANK_ACCOUNT &error){
+    } catch (const ERROR_BANK_ACCOUNT &error){
         throw error;
-    }
-    catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << endl
-             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
-             << "\t- in file -> " <<__FILE__<< endl;
+    } catch (const exception &error) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -234,10 +225,12 @@ void Account::deposit(const unsigned long int &amount, const std::string &staffI
         this->balance += amount;
         cout << "\n => Rs." << amount << " is Credited to account_number " << this->accountNumber << endl
              << " => Current Available balance is Rs." << this->balance << endl;
-    } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << endl
-             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
-             << "\t- in file -> " <<__FILE__<< endl;
+    }
+    catch (const exception &error) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    }
+    catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 // ======================================= END ACCOUNT ======================================

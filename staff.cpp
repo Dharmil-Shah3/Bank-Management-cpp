@@ -6,32 +6,37 @@ using namespace bankerror;
 
 using json = nlohmann::json;
 
-
 // ------------ CONSTRUCTOR & DESTRUCTOR --------------
 Staff::Staff(const string &id, const string &password)
 {
-    json staff = readData("staff");
-    if (staff.contains(id)){ // staff found
-        if(staff[id]["password"] != password){ // invalid password
-            throw ERROR_STAFF::INVALID_PASSWORD;
+    try {
+        json staff = readData("staff");
+        if (staff.contains(id)){ // staff found
+            if(staff[id]["password"] != password){ // invalid password
+                throw ERROR_STAFF::INVALID_PASSWORD;
+            }
+
+            string name        = staff[id]["name"];
+            string designation = staff[id]["designation"];
+            string mobile      = staff[id]["mobile"];
+            string address     = staff[id]["address"];
+            string email       = staff[id]["email"];
+
+            this->id          = id;
+            this->name        = trim(name, "\"");
+            this->designation = trim(designation, "\"");
+            this->branch_id   = staff[id]["branch_id"];
+            this->mobile      = trim(mobile, "\"");
+            this->email       = trim(email, "\"");
+            this->address     = trim(address, "\"");
+            this->salary      = staff[id]["salary"];
+        } else {
+            throw ERROR_STAFF::STAFF_NOT_FOUND;
         }
-
-        string name        = staff[id]["name"];
-        string designation = staff[id]["designation"];
-        string mobile      = staff[id]["mobile"];
-        string address     = staff[id]["address"];
-        string email       = staff[id]["email"];
-
-        this->id          = id;
-        this->name        = trim(name, "\"");
-        this->designation = trim(designation, "\"");
-        this->branch_id   = staff[id]["branch_id"];
-        this->mobile      = trim(mobile, "\"");
-        this->email       = trim(email, "\"");
-        this->address     = trim(address, "\"");
-        this->salary      = staff[id]["salary"];
-    } else {
-        throw ERROR_STAFF::STAFF_NOT_FOUND;
+    } catch (const ERROR_STAFF &error) {
+        throw error;
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -45,14 +50,15 @@ Staff* Staff::login(const string &userid, const string &password)
     }
     catch (const ERROR_STAFF &error) {
         if(error == ERROR_STAFF::STAFF_NOT_FOUND)
-            cout << "\n ERROR: NO STAFF MEMBER FOUND WITH ID \""<< userid << "\"" << endl;
+            cerr << "\n ERROR: " << errmsg::STAFF_NOT_FOUND << endl;
         else if(error == ERROR_STAFF::INVALID_PASSWORD)
-            cout << "\n ERROR: INVALID PASSWORD. TRY AGAIN..." << endl;
+            cerr << "\n ERROR: " << errmsg::INVALID_PASSWORD << endl;
     }
     catch (const exception & error) {
-        cout << "\n ERROR: " << error.what() << endl
-             << "\t- in function -> " << __PRETTY_FUNCTION__ << endl
-             << "\t- in file -> " << __FILE__ << endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    }
+    catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
     delete staff;
     return NULL;
@@ -183,12 +189,12 @@ void Staff::updateAccountDetails()
                 case 3: this->email = newValue; break;
                 case 4: this->address = newValue; break;
             }
-        } catch (const json::exception &error) {
-            cout << "\n ERROR (json): " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
         } catch (const exception &error) {
-            cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
-        }
-    }
+            displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+        } catch (...) {
+            displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
+        } // end of try
+    } // end of while
 }
 
 void Staff::displayBankAccountDetails()
@@ -199,14 +205,14 @@ void Staff::displayBankAccountDetails()
         Account::displayAccountDetails(accountNumber);
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
-        if(error == ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND)
-            cout << "\n ERROR: NO BANK ACCOUNT FOUND WITH ID "<<accountNumber<<" !" << endl;
-    }
-    catch (const json::exception &error){
-        cout << "\n ERROR (JOSN): "<< error.what() <<" in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        if(error == ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND)
+            cerr << "\n ERROR: " << errmsg::BANK_ACC_NOT_FOUND << endl;
     }
     catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    }
+    catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -220,7 +226,7 @@ void Staff::displayAccountHolderDetails()
         json accountHolder = readData("account_holder", to_string(accountHolderId));
 
         if(accountHolder.empty()){
-            throw ERROR_ACCOUNT_HOLDER::USER_NOT_FOUND;
+            throw ERROR_ACCOUNT_HOLDER::ACC_HOLDER_NOT_FOUND;
         } else {
             string name = accountHolder["name"];
             string mobile = accountHolder["mobile"];
@@ -233,10 +239,12 @@ void Staff::displayAccountHolderDetails()
                  << " Bank Accounts : " << accountHolder["bank_accounts"] << endl;
         }
     } catch (const ERROR_ACCOUNT_HOLDER &error) {
-        if(error == ERROR_ACCOUNT_HOLDER::USER_NOT_FOUND)
-            cout << "\n ERROR: NO ACCOUNT HOLDER FOUND WITH ID \"" << accountHolderId << "\"" << endl;
+        if(error == ERROR_ACCOUNT_HOLDER::ACC_HOLDER_NOT_FOUND)
+            cout << "\n ERROR: " << errmsg::ACC_HOLDER_NOT_FOUND << endl;
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<< __FILE__ <<")" << endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 
     getchar();
@@ -284,12 +292,15 @@ long int Staff::createAccountHolder()
 
     } catch (const int &error){
         if (error == -1) // operation cancel
-            cout << "\n => Operation cancelled: add new account holder..." <<  endl;
+            cerr << "\n => Operation cancelled: add new account holder..." <<  endl;
     } catch (const char* error) {
-        cout << error;
+        cerr << error;
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
+
     return 0; // if account is not created
 }
 
@@ -369,17 +380,18 @@ void Staff::createBankAccount()
         Account(bankAccountId).displayAccountDetails();
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
-        if(error == ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND)
+        if(error == ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND)
             cout << "\n ERROR: BANK ACCOUNT MAY NOT CREATED CORRECTLY" << error << endl;
     }
     catch (const ERROR_ACCOUNT_HOLDER &error) {
-        if(error == ERROR_ACCOUNT_HOLDER::USER_NOT_FOUND)
-            cout << "\n ERROR: NO ACCOUNT HOLDER FOUND WITH ID " << accountHolderId << endl;
+        if(error == ERROR_ACCOUNT_HOLDER::ACC_HOLDER_NOT_FOUND)
+            cout << "\n ERROR: " << errmsg::ACC_HOLDER_NOT_FOUND << endl;
     }
     catch (const exception &error) {
-        cout << "\n ERROR: " << endl
-             << "\t- " << error.what() << endl
-             << "\t- in function -> " << __PRETTY_FUNCTION__ << " in file -> "<< __FILE__ << endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    }
+    catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -391,15 +403,18 @@ void Staff::removeBankAccount()
         Account::removeAccount(account_number, this->id);
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
-        if(error == ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND)
-            cout << "\n ERROR: NO BANK ACCOUNT FOUND WITH ACCOUNT NUMBER " << account_number << endl;
+        if(error == ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND)
+            cerr << "\n ERROR: " << errmsg::BANK_ACC_NOT_FOUND << endl;
     }
     catch (const ERROR_STAFF &error) {
         if(error == ERROR_STAFF::INVALID_PASSWORD)
-            cout << "\n ERROR: INVALID PASSWORD ENTERED..." << endl;
+            cerr << "\n ERROR: " << errmsg::INVALID_PASSWORD << endl;
     }
     catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    }
+    catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -416,20 +431,20 @@ void Staff::withdraw()
         acc.withdraw(amount ,this->id);
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
-        if(error == ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND)
-            cout << "\n ERROR: NO BANK ACCOUNT FOUND WITH ACCOUNT NUMBER " << accountNumber << endl;
+        if(error == ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND)
+            cerr << "\n ERROR: " << errmsg::BANK_ACC_NOT_FOUND << endl;
         else if(error == ERROR_BANK_ACCOUNT::INSUFFICIENT_BALANCE)
-            cout << "\n ERROR: INSUFFICIENT BALANCE IN BANK ACCOUNT TO WITHDRAW !" << endl;
+            cerr << "\n ERROR: " << errmsg::INSUFFICIENT_BALANCE << endl;
     }
     catch (const long int &amount){
-        cout << "\n ERROR: NEGATIVE AMOUNT (" << amount << ") IS ENTERED."
+        cerr << "\n ERROR: NEGATIVE AMOUNT (" << amount << ") IS ENTERED."
              << " PLEASE ENTER VALID AMOUNT..." << endl;
-    }
-    catch (const string & error){
-        cout << "\n ERROR: " << error << endl;
-    }
-    catch (const exception &e){
-        cout << "\n ERROR: " << e.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+    } catch (const string &error){
+        cerr << "\n ERROR: " << error << endl;
+    } catch (const exception &error){
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...){
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -447,15 +462,16 @@ void Staff::deposit()
         acc.deposit(amount, this->id);
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
-        if(error == ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND)
-            cout << "\n ERROR: NO BANK ACCOUNT FOUND WITH GIVEN ACCOUNT NUMBER" << endl;
+        if(error == ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND)
+            cout << "\n ERROR: " << errmsg::BANK_ACC_NOT_FOUND << endl;
     }
     catch (const long int &amount){
-        cout << "\n ERROR: NEGATIVE OR ZERO AMOUNT (" << amount << ") IS ENTERED" << endl
+        cerr << "\n ERROR: NEGATIVE OR ZERO AMOUNT (" << amount << ") IS ENTERED" << endl
              << " PLEASE ENTER VALID AMOUNT..." << endl;
-    }
-    catch (const exception &e){
-        cout << "\n ERROR: " << e.what() << " in " << __PRETTY_FUNCTION__ << "("<<__FILE__<<")" << endl;
+    } catch (const exception &error){
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 // =================================== END STAFF ======================================

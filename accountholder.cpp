@@ -12,7 +12,7 @@ AccountHolder::AccountHolder(const long int &accountHolderId)
     try {
         json accountHolder = readData("account_holder", to_string(accountHolderId));
         if(accountHolder.empty()){ // if account holder not found
-            throw ERROR_ACCOUNT_HOLDER::USER_NOT_FOUND;
+            throw ERROR_ACCOUNT_HOLDER::ACC_HOLDER_NOT_FOUND;
         } else {
             // initializing data from json file
             this->id = accountHolderId;
@@ -27,9 +27,9 @@ AccountHolder::AccountHolder(const long int &accountHolderId)
         /// @todo handle it
         throw error;
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << endl
-             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
-             << "\t- in file -> " <<__FILE__<< endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
@@ -50,10 +50,11 @@ long int AccountHolder::createAccountHolder(const std::string &name, const std::
         updateData(data);
         return accountHolderId; // return the id of new account holder
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << endl
-             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
-             << "\t- in file -> " <<__FILE__<< endl;
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
+
     return 0; // if account is not created
 }
 

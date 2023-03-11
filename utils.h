@@ -38,24 +38,36 @@ enum BANK_LOG_TYPES{ WITHDRAW, DEPOSIT, ADD_STAFF, REMOVE_STAFF, ADD_BANK_ACC, R
  * ***********************************************************************************************/
 namespace bankerror
 {
-    const std::string NOT_FOUND = "NO USER FOUND WITH THE GIVEN USERID";
-    const std::string BANK_ACC_NOT_FOUND = "NO BANK ACCOUNT FOUND WITH GIVEN ACCOUNT NUMBER";
-    const std::string INVALID_PASS = "INCORRECT PASSWORD IS ENTERED";
+    /** ***********************************************************************************
+     * @namespace errmsg
+     * @brief This stores the string constants that contains message for custom exceptions.
+     * ***********************************************************************************/
+    namespace errmsg {
+        const std::string ACC_HOLDER_NOT_FOUND = "NO ACCOUNT HOLDER FOUND WITH THE GIVEN ID";
+        const std::string STAFF_NOT_FOUND      = "NO USER FOUND WITH THE GIVEN USERID";
+        const std::string BANK_ACC_NOT_FOUND   = "NO BANK ACCOUNT FOUND WITH GIVEN ACCOUNT NUMBER";
+        const std::string INVALID_PASSWORD     = "INVALID PASSWORD IS ENTERED";
+        const std::string INSUFFICIENT_BALANCE = "INSUFFICIENT BALANCE IN BANK ACCOUNT TO WITHDRAW !";
+        const std::string NOT_AN_ADMIN         = "GIVEN USERID IS NOT AN ADMIN";
+    }
 
+    /** ******************************************************
+     * @enum ERROR_STAFF
+     * @brief Types of error related to class Staff and Admin.
+     * ******************************************************/
+    enum ERROR_STAFF{ STAFF_NOT_FOUND, INVALID_PASSWORD, NOT_AN_ADMIN };
 
     /** ************************************************************
      * @enum ERROR_BANK_ACCOUNT
      * @brief Types of error related to class Account(bank account).
      * ************************************************************/
-    enum ERROR_BANK_ACCOUNT{ ACCOUNT_NOT_FOUND, INSUFFICIENT_BALANCE };
+    enum ERROR_BANK_ACCOUNT{ BANK_ACC_NOT_FOUND, INSUFFICIENT_BALANCE };
 
     /** ****************************************************
      * @enum ERROR_ACCOUNT_HOLDER
      * @brief Types of error related to class AccountHolder.
      * ****************************************************/
-    enum ERROR_ACCOUNT_HOLDER{ USER_NOT_FOUND };
-
-    enum ERROR_STAFF{ STAFF_NOT_FOUND, INVALID_PASSWORD, NOT_AN_ADMIN };
+    enum ERROR_ACCOUNT_HOLDER{ ACC_HOLDER_NOT_FOUND };
 }
 
 
@@ -120,6 +132,16 @@ namespace utils
     std::string padLeft(std::string &str,
                         const unsigned int &totalLength,
                         const char &paddingCharacter = ' ');
+
+    /** *************************************************************************************
+     * @brief displayCustomErrorMessage displays the common error message in the system.
+     * @param functionName contains the name of the function in which the error has occurred.
+     * @param fileName is the name of the source file in which the exception has occurred.
+     * @param message is the error description. Default value is "Unhandled Exception".
+     * *************************************************************************************/
+    void displayCustomErrorMessage(const std::string &functionName,
+                                   const std::string &fileName,
+                                   const std::string &message = "Unhandled Exception");
 
     //=================== Log Functions ========================
     /** *********************************************************************************************************
@@ -202,7 +224,7 @@ namespace utils
      * @param newValue is the value that needs to be assigned to dataToUpdate.
      * ************************************************************************/
     template<typename T>
-    void updateData(const nlohmann::json &data, nlohmann::json &dataToUpdate, const T& newValue)
+    void updateData(const nlohmann::json &data, nlohmann::json &dataToUpdate, const T &newValue)
     {
         using namespace std;
         ofstream fout;
@@ -226,14 +248,19 @@ namespace utils
                 throw error;
             }
         } catch (const string &error) {
-            cout << "\n ERROR: " << error.what() << endl
+            cout << "\n ERROR: " << error << endl
                  << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
                  << "\t- in file -> " <<__FILE__<< endl;
         } catch (const exception &error){
             cout << "\n ERROR: " << error.what() << endl
                  << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
                  << "\t- in file -> " <<__FILE__<< endl;
+        } catch (...) {
+            cerr << "\n ERROR: Unhandled exception" << endl
+                 << "\t- in function -> "<<__PRETTY_FUNCTION__<< endl
+                 << "\t- in file     -> "<<__FILE__<< endl;
         }
+
         fout.close();
         getc(stdin);
     }
