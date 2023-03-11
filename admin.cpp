@@ -14,8 +14,10 @@ Admin::Admin(const string &adminId, const string &password) : Staff(adminId, pas
             throw ERROR_STAFF::NOT_AN_ADMIN;
         }
     } catch (const ERROR_STAFF &error) {
+        this->~Admin();
         throw error;
     } catch (const exception &error){
+        this->~Admin();
         throw error;
     }
 }
@@ -23,8 +25,9 @@ Admin::Admin(const string &adminId, const string &password) : Staff(adminId, pas
 // ------- STATIC METHODS -------
 Admin* Admin::login(const string &userid, const string &password)
 {
+    Admin *admin = NULL;
     try {
-        Admin *admin = new Admin(userid, password);
+        admin = new Admin(userid, password);
         return admin;
     }
     catch (const ERROR_STAFF & error) {
@@ -39,12 +42,14 @@ Admin* Admin::login(const string &userid, const string &password)
                 cout << "\n ERROR: \""<< userid <<"\" IS NOT AN ADMIN"<< endl;
                 break;
         }
-        return NULL;
     }
     catch (const exception & error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")";
-        return NULL;
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- int file -> "<<__FILE__<< endl;
     }
+    delete admin;
+    return NULL;
 }
 
 bool Admin::isAdmin(const string &id)
@@ -276,10 +281,10 @@ void Admin::displayWithdrawDepositLogsByDate()
 
         sleep(1); // sleep for 1 second
     } // end while
-    } catch (const json::exception &error) {
-        cout << "\n ERROR (JOSN): " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
 }
 
@@ -344,10 +349,10 @@ void Admin::displayWithdrawDepositLogsByMonth()
 
         sleep(1); // sleep for 1 second
     } // end while
-    } catch (const json::exception &error) {
-        cout << "\n ERROR (JOSN): " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
 }
 
@@ -413,10 +418,10 @@ void Admin::displayWithdrawDepositLogsByYear()
     } // end while
     } catch(const string &error) {
         cout << "ERROR: " << error << endl;
-    } catch (const json::exception &error) {
-        cout << "\n ERROR (JOSN): " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
 }
 

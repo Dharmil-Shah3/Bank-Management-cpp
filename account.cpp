@@ -22,8 +22,10 @@ Account::Account(const unsigned long int &accountNumber)
             throw ERROR_BANK_ACCOUNT::ACCOUNT_NOT_FOUND;
         }
     } catch (const ERROR_BANK_ACCOUNT &error) {
+        this->~Account();
         throw error;
-    } catch (const std::exception &error) {
+    } catch (const exception &error) {
+        this->~Account();
         throw error; // rethrowing error to caller function
     }
 }
@@ -47,7 +49,7 @@ void Account::displayAccountDetails(const unsigned long int &accountNumber)
     } catch (const ERROR_BANK_ACCOUNT &error) {
         /// @todo handle it everywhere else
         throw error;
-    } catch (const std::exception &error) {
+    } catch (const exception &error) {
         throw error;
     }
 }
@@ -161,8 +163,9 @@ void Account::removeAccount(const unsigned long int &accountNumber, const string
     } catch (const char* error) {
         throw error;
     } catch (const exception &error) {
-        cout << "\n ERROR: \n\t- " << error.what()  << endl
-             << "\t- in " << __PRETTY_FUNCTION__ << "("<< __FILE__ <<")" << endl;
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
 }
 
@@ -211,7 +214,9 @@ void Account::withdraw(const unsigned long int &amount, const std::string &staff
         throw error;
     }
     catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << "("<< __FILE__ <<")" << endl;
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
 }
 
@@ -229,8 +234,10 @@ void Account::deposit(const unsigned long int &amount, const std::string &staffI
         this->balance += amount;
         cout << "\n => Rs." << amount << " is Credited to account_number " << this->accountNumber << endl
              << " => Current Available balance is Rs." << this->balance << endl;
-    } catch (const exception &error){
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << "("<< __FILE__ <<")" << endl;
+    } catch (const exception &error) {
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
 }
 // ======================================= END ACCOUNT ======================================

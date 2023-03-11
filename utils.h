@@ -117,7 +117,9 @@ namespace utils
      * @param paddingCharacter is the character to be padded at the start of the string.
      * @return padded string
      * *********************************************************************************/
-    std::string padLeft(std::string &str, const unsigned int totalLength, const char &paddingCharacter = ' ');
+    std::string padLeft(std::string &str,
+                        const unsigned int &totalLength,
+                        const char &paddingCharacter = ' ');
 
     //=================== Log Functions ========================
     /** *********************************************************************************************************
@@ -224,9 +226,13 @@ namespace utils
                 throw error;
             }
         } catch (const string &error) {
-            cout << "\n ERROR: " << error << " IN "<< __PRETTY_FUNCTION__ << " ("<<__FILE__<<")"<< endl;
+            cout << "\n ERROR: " << error.what() << endl
+                 << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+                 << "\t- in file -> " <<__FILE__<< endl;
         } catch (const exception &error){
-            cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+            cout << "\n ERROR: " << error.what() << endl
+                 << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+                 << "\t- in file -> " <<__FILE__<< endl;
         }
         fout.close();
         getc(stdin);

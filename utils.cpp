@@ -10,7 +10,7 @@ const char* utils::trim(string &str, const string &characterstoRemove)
     return str.c_str();
 }
 
-string utils::padLeft(std::string &str, const unsigned int totalLength, const char &paddingCharacter)
+string utils::padLeft(std::string &str, const unsigned int &totalLength, const char &paddingCharacter)
 {
     if(totalLength > str.size())
         str.insert(0, totalLength - str.size(), paddingCharacter);
@@ -121,9 +121,13 @@ json utils::readData(const string &key1, const string &key2)
         else return data[key1][key2];
 
     } catch (const string &error) {
-        cout << "\n ERROR: " << " IN " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        cout << "\n ERROR: " << error << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     } catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
     return NULL;
 }
@@ -147,9 +151,13 @@ json utils::readLogs(const unsigned short &key1, const unsigned short &key2,
         else if(key4 == 0) return data[to_string(key1)][to_string(key2)][to_string(key3)];
         else return data[to_string(key1)][to_string(key2)][to_string(key3)][to_string(key4)];
     } catch (const string &error) {
-        cout << "\n ERROR: " << " IN " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
-    } catch (const exception &e) {
-        cout << "\n ERROR: " << e.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        cout << "\n ERROR: " << error << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
+    } catch (const exception &error) {
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
     return NULL;
 }
@@ -229,13 +237,14 @@ void utils::writeWithdrawDepositeLog(const BANK_LOG_TYPES &type,
         fout.close();
     }
     catch (const string &error){
-        cout << "\n ERROR: " << error << " IN " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
-    }
-    catch (const json::exception &error) {
-        cout << "\n ERROR (json): " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        cout << "\n ERROR: " << error << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
     catch (const exception &error) {
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
 }
 
@@ -253,9 +262,13 @@ void utils::updateData(const nlohmann::json &data)
             cout << "\n => Data is updated successfully..." << endl;
         }
     } catch (const string &error){ // if any error in file operation
-        cout << "\n ERROR: " << error << " IN " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        cout << "\n ERROR: " << error << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     } catch (const exception &error){
-        cout << "\n ERROR: " << error.what() << " in " << __PRETTY_FUNCTION__ << " ("<<__FILE__<<")" << endl;
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
     fout.close();
     getc(stdin);

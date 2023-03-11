@@ -26,8 +26,10 @@ AccountHolder::AccountHolder(const long int &accountHolderId)
     } catch (const ERROR_ACCOUNT_HOLDER &error) {
         /// @todo handle it
         throw error;
-    } catch (const std::exception &error) {
-        cout << "\n ERROR: " << error.what() << " in AccountHolder::AccountHolder()" << endl;
+    } catch (const exception &error) {
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
 }
 
@@ -47,10 +49,10 @@ long int AccountHolder::createAccountHolder(const std::string &name, const std::
         data["account_holder"].push_back(json::object_t::value_type(to_string(accountHolderId), newAccountHolder));
         updateData(data);
         return accountHolderId; // return the id of new account holder
-    } catch (const json::exception &error) {
-        cout << "ERROR: " << error.what() << " in AccountHolder::createAccountHolder()" << endl;
-    } catch (const std::exception &error) {
-        cout << "ERROR: " << error.what() << " in AccountHolder::createAccountHolder()" << endl;
+    } catch (const exception &error) {
+        cout << "\n ERROR: " << error.what() << endl
+             << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
+             << "\t- in file -> " <<__FILE__<< endl;
     }
     return 0; // if account is not created
 }
