@@ -31,46 +31,6 @@ enum BANK_USER_ROLES{ ADMIN, STAFF, ACCOUNT_HOLDER };
  ******************************************************************* */
 enum BANK_LOG_TYPES{ WITHDRAW, DEPOSIT, ADD_STAFF, REMOVE_STAFF, ADD_BANK_ACC, REMOVE_BANK_ACC };
 
-
-/** ***********************************************************************************************
- * @namespace bankerror
- * @brief it contains all the enums and string constants related to bank-management related errors.
- * ***********************************************************************************************/
-namespace bankerror
-{
-    /** ***********************************************************************************
-     * @namespace errmsg
-     * @brief This stores the string constants that contains message for custom exceptions.
-     * ***********************************************************************************/
-    namespace errmsg {
-        const std::string ACC_HOLDER_NOT_FOUND = "NO ACCOUNT HOLDER FOUND WITH THE GIVEN ID";
-        const std::string STAFF_NOT_FOUND      = "NO USER FOUND WITH THE GIVEN USERID";
-        const std::string BANK_ACC_NOT_FOUND   = "NO BANK ACCOUNT FOUND WITH GIVEN ACCOUNT NUMBER";
-        const std::string INVALID_PASSWORD     = "INVALID PASSWORD IS ENTERED";
-        const std::string INSUFFICIENT_BALANCE = "INSUFFICIENT BALANCE IN BANK ACCOUNT TO WITHDRAW !";
-        const std::string NOT_AN_ADMIN         = "GIVEN USERID IS NOT AN ADMIN";
-    }
-
-    /** ******************************************************
-     * @enum ERROR_STAFF
-     * @brief Types of error related to class Staff and Admin.
-     * ******************************************************/
-    enum ERROR_STAFF{ STAFF_NOT_FOUND, INVALID_PASSWORD, NOT_AN_ADMIN };
-
-    /** ************************************************************
-     * @enum ERROR_BANK_ACCOUNT
-     * @brief Types of error related to class Account(bank account).
-     * ************************************************************/
-    enum ERROR_BANK_ACCOUNT{ BANK_ACC_NOT_FOUND, INSUFFICIENT_BALANCE };
-
-    /** ****************************************************
-     * @enum ERROR_ACCOUNT_HOLDER
-     * @brief Types of error related to class AccountHolder.
-     * ****************************************************/
-    enum ERROR_ACCOUNT_HOLDER{ ACC_HOLDER_NOT_FOUND };
-}
-
-
 namespace utils
 {
 
@@ -236,29 +196,21 @@ namespace utils
                 short lineNumber = __LINE__-1; // just to show linenumber in exception
 
                 if(fout.fail()){ // if any error in file operation
-                    string error = "FILE OPERATION FAILED ! DATA IS NOT UPDATED SUCCESSFULLY..."
-                                   "\n ON LINE NUMBER " + to_string(lineNumber);
-                    throw error;
+                    throw string("FILE OPERATION FAILED ! DATA IS NOT UPDATED SUCCESSFULLY..."
+                                 "\n ON LINE NUMBER " + to_string(lineNumber));
                 } else {
                     cout << "\n => Data is updated successfully !" << endl;
                 }
             }
             else { // if new and existing values are same
-                string error = "NO DATA UPDATED, NEW VALUE IS SIMILAR TO EXISTING !";
-                throw error;
+                throw string("NO DATA UPDATED, NEW VALUE IS SIMILAR TO EXISTING !");
             }
         } catch (const string &error) {
-            cout << "\n ERROR: " << error << endl
-                 << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
-                 << "\t- in file -> " <<__FILE__<< endl;
+            displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error);
         } catch (const exception &error){
-            cout << "\n ERROR: " << error.what() << endl
-                 << "\t- in function -> " <<__PRETTY_FUNCTION__<< endl
-                 << "\t- in file -> " <<__FILE__<< endl;
+            displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
         } catch (...) {
-            cerr << "\n ERROR: Unhandled exception" << endl
-                 << "\t- in function -> "<<__PRETTY_FUNCTION__<< endl
-                 << "\t- in file     -> "<<__FILE__<< endl;
+            displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
         }
 
         fout.close();

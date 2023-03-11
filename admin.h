@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 #include <bits/stdc++.h>     // for transform() for lowercase and uppercase strings
 #include "utils.h"
+#include "bankerror.h"
 #include "staff.h"
 
 class Admin : public Staff {

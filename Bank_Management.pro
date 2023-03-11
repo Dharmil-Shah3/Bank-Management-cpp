@@ -16,6 +16,7 @@ HEADERS += \
     account.h \
     accountholder.h \
     admin.h \
+    bankerror.h \
     bankmanagement.h \
     staff.h \
     utils.h
