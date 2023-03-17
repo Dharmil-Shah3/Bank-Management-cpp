@@ -31,11 +31,11 @@ bool utils::isNameValid(string& name)
     // converting string into lowercase
     transform(name.begin(), name.end(), name.begin(), ::tolower);
     trim(name);
-    regex pattern{"^[a-z]{3,15}( [a-z]{3,15})?$"};
+    regex pattern{"^[a-z]{3,15}( [a-z]{3,15})?( [a-z]{3,15})?$"};
     if(regex_search(name, pattern))
         return true;
     cout << "\n => ERROR: name must contain alphabets only"
-         << "\n => Valid name examples: [ram], [ram charan]" << endl;
+         << "\n => Valid name examples: [james], [james bond], [james joseph bond]" << endl;
     getc(stdin);
     return false;
 }

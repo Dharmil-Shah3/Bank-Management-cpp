@@ -16,7 +16,7 @@ namespace bankerror
     namespace errmsg {
         const std::string INVALID_USER         = "INVALID USERID OR PASSWORD";
         const std::string USER_NOT_FOUND       = "NO USER FOUND WITH THE GIVEN USERID";
-        const std::string BANK_ACC_NOT_FOUND   = "NO BANK ACCOUNT FOUND WITH GIVEN ACCOUNT NUMBER";
+        const std::string ACC_NOT_FOUND        = "NO BANK ACCOUNT FOUND WITH GIVEN ACCOUNT NUMBER";
         const std::string INVALID_PASSWORD     = "INVALID PASSWORD IS ENTERED";
         const std::string INSUFFICIENT_BALANCE = "INSUFFICIENT BALANCE IN BANK ACCOUNT TO WITHDRAW !";
         const std::string NOT_AN_ADMIN         = "USER IS NOT AN ADMIN";

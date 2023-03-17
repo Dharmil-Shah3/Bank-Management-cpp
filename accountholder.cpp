@@ -9,6 +9,7 @@ using json = nlohmann::json;
 // ------- CONSTRUCTOR -------
 AccountHolder::AccountHolder(const string &accountHolderId, const string &password)
 {
+    isUserValid = false;
     try {
         json accountHolder = readData("account_holder", accountHolderId);
 
@@ -18,20 +19,18 @@ AccountHolder::AccountHolder(const string &accountHolderId, const string &passwo
             this->name = accountHolder["name"];
             this->mobile = accountHolder["mobile"];
             this->address = accountHolder["address"];
-            // storing bank account ids in vector
+
+            // storing bank account numbers related to account holder in vector
             for(size_t i=0; i<accountHolder["bank_accounts"].size(); i++){
-                bankAccounts.push_back(accountHolder["bank_accounts"][i]);
+                string bankAccount = accountHolder["bank_accounts"][i];
+                bankAccounts.push_back(trim(bankAccount, "\""));
             }
             isUserValid = true;
-        } else {
-            isUserValid = false;
         }
     } catch (const exception &error) {
         displayCustomErrorMessage( __PRETTY_FUNCTION__, __FILE__, error.what());
-        isUserValid = false;
     } catch (...) {
         displayCustomErrorMessage( __PRETTY_FUNCTION__, __FILE__);
-        isUserValid = false;
     }
 }
 
@@ -69,11 +68,13 @@ string AccountHolder::createAccountHolder(const std::string &name,
             {"name", name},
             {"mobile", mobile},
             {"address", address},
-            {"password", password}
+            {"password", password},
+            {"bank_accounts", json::array()}
         };
 
         long int accountHolderId = data["last_account_holder_number"];
         accountHolderId++;
+        data["last_account_holder_number"] = accountHolderId;
         data["account_holder"].push_back(json::object_t::value_type(to_string(accountHolderId), newAccountHolder));
         updateData(data);
 
@@ -83,11 +84,31 @@ string AccountHolder::createAccountHolder(const std::string &name,
     } catch (...) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
-    return NULL; // if account is not created
+    return ""; // if account is not created
 }
 
 // ------- OTHER METHODS -------
 bool AccountHolder::isValid(){ return  this->isUserValid; }
+
+void AccountHolder::displayDetails(){
+    cout << "\n ======== DETAILS ========" << endl;
+    cout << " Customer id   : " << this->id << endl
+         << " Name          : " << this->name << endl
+         << " Mobile        : " << this->mobile << endl
+         << " Address       : " << this->address << endl
+         << " Bank Accounts : ";
+
+    // displaying bank account numbers if any
+    if(bankAccounts.size() > 0){
+        cout << "[";
+        for(std::size_t i=0; i<bankAccounts.size(); i++){
+            cout << " " << bankAccounts[i] << ",";
+        }
+        cout << "\b ]" << endl;
+    } else {
+        cout << "NO BANK ACCOUNT" << endl;
+    }
+}
 
 void AccountHolder::displayPanel(){
     if(!isUserValid) throw INVALID_USER;

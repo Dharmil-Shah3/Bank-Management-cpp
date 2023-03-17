@@ -41,6 +41,7 @@ public:
 
     // ---------- OTHER METHODS ----------
     bool isValid();
+    void displayDetails();
     void displayPanel();
 };
 

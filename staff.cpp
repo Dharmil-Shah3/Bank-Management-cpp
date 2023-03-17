@@ -46,11 +46,11 @@ Staff* Staff::login(const string &userid, const string &password)
         if(staff->isValid()){
             return staff.release();
         } else {
-            throw INVALID_USER_OBJECT;
+            throw INVALID_USER;
         }
     }
     catch (const ERROR_USER &error) {
-        cerr << "\n ERROR: " << errmsg::INVALID_USER_OBJECT << endl;
+        cerr << "\n ERROR: " << errmsg::INVALID_USER << endl;
     }
     catch (const exception & error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
@@ -66,7 +66,7 @@ bool Staff::isValid(){ return this->isUserValid; }
 
 void Staff::displayPanel()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     short choice = 1;
     system("clear");
@@ -116,7 +116,7 @@ void Staff::displayPanel()
 
 void Staff::displayStaffDetails()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     cout << "\n\n ================ DETAILS ================\n" << endl;
     cout << " Id          : " << this->id << endl;
@@ -131,7 +131,7 @@ void Staff::displayStaffDetails()
 
 void Staff::updateAccountDetails()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     this->displayStaffDetails();
     while(1){
@@ -204,7 +204,7 @@ void Staff::updateAccountDetails()
 
 void Staff::displayBankAccountDetails()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     long int accountNumber;
     try {
@@ -212,8 +212,8 @@ void Staff::displayBankAccountDetails()
         Account::displayAccountDetails(accountNumber);
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
-        if(error == BANK_ACC_NOT_FOUND)
-            cerr << "\n ERROR: " << errmsg::BANK_ACC_NOT_FOUND << endl;
+        if(error == ACC_NOT_FOUND)
+            cerr << "\n ERROR: " << errmsg::ACC_NOT_FOUND << endl;
     }
     catch (const exception &error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
@@ -225,27 +225,18 @@ void Staff::displayBankAccountDetails()
 
 void Staff::displayAccountHolderDetails()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
-    long int accountHolderId;
+    string accountHolderId;
     cout << "\n ======== ACCOUNT HOLDER DEATILS ========" << endl;
     scanNumber(accountHolderId, " Enter Account Holder Id: ");
 
     try {
-        json accountHolder = readData("account_holder", to_string(accountHolderId));
-
+        json accountHolder = readData("account_holder", accountHolderId);
         if(accountHolder.empty()){
             throw USER_NOT_FOUND;
         } else {
-            string name = accountHolder["name"];
-            string mobile = accountHolder["mobile"];
-            string address = accountHolder["address"];
-
-            cout << "\n Id            : " << accountHolderId << endl
-                 << " Name          : " << trim(name, "\"") << endl
-                 << " Mobile Number : " << trim(mobile, "\"") << endl
-                 << " Address       : " << trim(address, "\"") << endl
-                 << " Bank Accounts : " << accountHolder["bank_accounts"] << endl;
+            AccountHolder(accountHolderId, accountHolder["password"]).displayDetails();
         }
     } catch (const ERROR_USER &error) {
         if(error == USER_NOT_FOUND)
@@ -263,54 +254,54 @@ void Staff::displayAccountHolderDetails()
 
 string Staff::createAccountHolder()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
     /// @todo test this function
-    string name, address, mobile, password;
+    string name, address, mobile, password, newAccountHolderId = "";
     system("clear");
-    cout << "====== ENTER ACCOUNT HOLDER DETAILS ======" << endl
-         << " => Enter Zero(0) to cancle..." << endl;
+    cout << "\n ====== ENTER ACCOUNT HOLDER DETAILS ======" << endl
+         << "\n [Enter Zero(0) to cancle]" << endl;
 
     try {
         cin.ignore();
 
-        do {
+        do { // until the name is not valid
             cout << "\n Name: ";
             getline(cin, name);
             trim(name);
             if(name == "0") // operation cancel
                 throw -1;
-        } while (!isNameValid(name)); // until the name is not valid
+        } while (!isNameValid(name));
 
-        do {
+        do { // until the mobile is not valid
             cout << "\n Mobile Number: ";
             getline(cin, mobile);
             trim(mobile);
             if(mobile == "0") // operation cancel
                 throw -1;
-        } while (!isMobileValid(mobile)); // until the mobile is not valid
+        } while (!isMobileValid(mobile));
 
-        do {
+        do { // until the address is not valid
             cout << "\n Address: ";
             getline(cin, address);
             trim(address);
             if(address == "0") // operation cancel
                 throw -1;
-        } while (!isAddressValid(address)); // until the address is not valid
+        } while (!isAddressValid(address));
 
-        do {
+        do { // until the address is not valid
             cout << "\n Password: ";
             getline(cin, password);
             trim(password);
-            if(password == "0") // operation cancel
+            if(password == "0")
                 throw -1;
-        } while (!isPasswordValid(password)); // until the address is not valid
+        } while (!isPasswordValid(password));
 
-        string newAccountHolderId = AccountHolder::createAccountHolder(name, mobile, address, password);
-        return newAccountHolderId;
+        newAccountHolderId = AccountHolder::createAccountHolder(name, mobile, address, password);
+        cout << "\n => Account Holder added Successfully" << endl;
+        AccountHolder(newAccountHolderId, password).displayDetails();
 
-    } catch (const int &error){
-        if (error == -1) // operation cancel
-            cerr << "\n => Operation cancelled: add new account holder..." <<  endl;
+    } catch (const int &error){ // operation cancel
+        cerr << "\n => OPERATION CANCELED: Add new account holder" <<  endl;
     } catch (const char* error) {
         cerr << error;
     } catch (const exception &error) {
@@ -318,12 +309,14 @@ string Staff::createAccountHolder()
     } catch (...) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
-    return NULL; // if account is not created
+    getc(stdin);
+    system("clear");
+    return newAccountHolderId;
 }
 
 void Staff::createBankAccount()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     unsigned long int balance;
     short choice;
@@ -347,7 +340,7 @@ void Staff::createBankAccount()
 
                     if(choice == 1){
                         accountHolderId = this->createAccountHolder();
-                        if(accountHolderId.empty()){ // if account holder is not created properly
+                        if(accountHolderId.empty()){ // if account holder is not created
                             cout << "\n ERROR: ACCOUNR HOLDER IS NOT CREATED PROPERLY ! TRY AGAIN..." << endl;
                             getc(stdin);
                             continue;
@@ -400,7 +393,7 @@ void Staff::createBankAccount()
         Account(bankAccountId).displayAccountDetails();
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
-        if(error == BANK_ACC_NOT_FOUND)
+        if(error == ACC_NOT_FOUND)
             cout << "\n ERROR: BANK ACCOUNT MAY NOT CREATED CORRECTLY" << error << endl;
     }
     catch (const ERROR_USER &error) {
@@ -417,7 +410,7 @@ void Staff::createBankAccount()
 
 void Staff::removeBankAccount()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     int account_number;
     try {
@@ -425,8 +418,8 @@ void Staff::removeBankAccount()
         Account::removeAccount(account_number, this->id);
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
-        if(error == BANK_ACC_NOT_FOUND)
-            cerr << "\n ERROR: " << errmsg::BANK_ACC_NOT_FOUND << endl;
+        if(error == ACC_NOT_FOUND)
+            cerr << "\n ERROR: " << errmsg::ACC_NOT_FOUND << endl;
     }
     catch (const ERROR_USER &error) {
         if(error == INVALID_PASSWORD)
@@ -442,7 +435,7 @@ void Staff::removeBankAccount()
 
 void Staff::withdraw()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     long int accountNumber, amount;
     try {
@@ -455,9 +448,9 @@ void Staff::withdraw()
         acc.withdraw(amount ,this->id);
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
-        if(error == ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND)
-            cerr << "\n ERROR: " << errmsg::BANK_ACC_NOT_FOUND << endl;
-        else if(error == ERROR_BANK_ACCOUNT::INSUFFICIENT_BALANCE)
+        if(error == ACC_NOT_FOUND)
+            cerr << "\n ERROR: " << errmsg::ACC_NOT_FOUND << endl;
+        else if(error == INSUFFICIENT_BALANCE)
             cerr << "\n ERROR: " << errmsg::INSUFFICIENT_BALANCE << endl;
     }
     catch (const long int &amount){
@@ -474,7 +467,7 @@ void Staff::withdraw()
 
 void Staff::deposit()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     long int accountNumber, amount;
     scanNumber(accountNumber, " => Enter bank account number: ");
@@ -488,8 +481,7 @@ void Staff::deposit()
         acc.deposit(amount, this->id);
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
-        if(error == ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND)
-            cout << "\n ERROR: " << errmsg::BANK_ACC_NOT_FOUND << endl;
+        cerr << "\n ERROR: " << errmsg::ACC_NOT_FOUND << endl;
     }
     catch (const long int &amount){
         cerr << "\n ERROR: NEGATIVE OR ZERO AMOUNT (" << amount << ") IS ENTERED" << endl
