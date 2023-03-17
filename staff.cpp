@@ -1,5 +1,4 @@
 #include "staff.h"
-#include <memory.h>
 
 using namespace std;
 using namespace utils;
@@ -43,18 +42,15 @@ Staff::Staff(const string &id, const string &password)
 Staff* Staff::login(const string &userid, const string &password)
 {
     try {
-        json staff = readData("staff", userid);
-        if(staff.empty()){
-            throw USER_NOT_FOUND;
-        } else if (password != staff["password"]){
-            throw INVALID_PASSWORD;
-        } else { // all ok then return staff
-            return new Staff(userid, password);
+        unique_ptr<Staff> staff(new Staff(userid, password));
+        if(staff->isValid()){
+            return staff.release();
+        } else {
+            throw INVALID_USER_OBJECT;
         }
     }
     catch (const ERROR_USER &error) {
-        if(error == USER_NOT_FOUND) cerr << "\n ERROR: " << errmsg::USER_NOT_FOUND << endl;
-        else if(error == INVALID_PASSWORD) cerr << "\n ERROR: " << errmsg::INVALID_PASSWORD << endl;
+        cerr << "\n ERROR: " << errmsg::INVALID_USER_OBJECT << endl;
     }
     catch (const exception & error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
@@ -66,6 +62,8 @@ Staff* Staff::login(const string &userid, const string &password)
 }
 
 // -------------- OTHER METHODS --------------
+bool Staff::isValid(){ return this->isUserValid; }
+
 void Staff::displayPanel()
 {
     if(!isUserValid) throw INVALID_USER_OBJECT;

@@ -18,25 +18,15 @@ Admin::Admin(const string &id, const string &password) : Staff(id, password)
 Admin* Admin::login(const string &userid, const string &password)
 {
     try {
-        json staff = readData("staff", userid);
-
-        if (staff.empty()){ // user not found
-            throw USER_NOT_FOUND;
-        }
-        else if (password != staff["password"]){ // invalid password
-            throw INVALID_PASSWORD;
-        }
-        else if (!isAdmin(userid)){ // if its not an admin
-            throw NOT_AN_ADMIN;
-        }
-        else { // all is ok
-            return new Admin(userid, password);
+        unique_ptr<Admin> admin(new Admin(userid, password));
+        if(admin->isValid()){
+            return admin.release();
+        } else {
+            throw INVALID_USER;
         }
     }
     catch (const ERROR_USER & error) {
-        if (error == USER_NOT_FOUND)        cerr << "\n ERROR: " << errmsg::USER_NOT_FOUND << endl;
-        else if (error == INVALID_PASSWORD) cerr << "\n ERROR: " << errmsg::INVALID_PASSWORD << endl;
-        else if (error == NOT_AN_ADMIN)     cerr << "\n ERROR: " << errmsg::NOT_AN_ADMIN << endl;
+        cerr << "\n ERROR: " << errmsg::INVALID_USER<< " OR USER IS NOT AN ADMIN" << endl;
     }
     catch (const exception & error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
@@ -155,7 +145,7 @@ void Admin::displayWithdrawDepositLogs(const json &dateLogs, const string &month
 // ------- OTHER METHODS -------
 void Admin::displayPanel()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     short choice = 1;
     string input; // for scan staff id and name
@@ -209,7 +199,6 @@ void Admin::displayPanel()
 
 void Admin::displayStaffDetails(const std::string &staffId)
 {
-    /// @todo refactor this function with isUserValid
     try {
         json staff = readData("staff", staffId);
         if(staff.empty()){
@@ -226,7 +215,7 @@ void Admin::displayStaffDetails(const std::string &staffId)
 
 void Admin::displayLogs()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     system("clear");
     unsigned short choice;
@@ -250,7 +239,7 @@ void Admin::displayLogs()
 
 void Admin::displayWithdrawDepositLogsByDate()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     json newLogs, oldLogs = NULL;
     unsigned short year, month, date;
@@ -320,7 +309,7 @@ void Admin::displayWithdrawDepositLogsByDate()
 
 void Admin::displayWithdrawDepositLogsByMonth()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     json newLogs, oldLogs = NULL;
     unsigned short year, month;
@@ -393,7 +382,7 @@ void Admin::displayWithdrawDepositLogsByMonth()
 
 void Admin::displayWithdrawDepositLogsByYear()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     json newLogs, oldLogs = NULL;
     unsigned short year;
@@ -469,7 +458,7 @@ void Admin::displayWithdrawDepositLogsByYear()
 
 void Admin::searchStaffDetailsByName(string &inputName)
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     try {
 
@@ -530,7 +519,7 @@ void Admin::searchStaffDetailsByName(string &inputName)
 
 void Admin::updateStaffDetails(const string &staffId)
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     try {
         json data = readData();
@@ -614,7 +603,7 @@ void Admin::updateStaffDetails(const string &staffId)
 
 void Admin::addStaff()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     string name, address, email, mobile, designation, password;
     int salary, branch_id;
@@ -694,7 +683,7 @@ void Admin::addStaff()
 
 void Admin::removeStaff()
 {
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     string staffIdToRemove;
 

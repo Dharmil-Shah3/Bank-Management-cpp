@@ -28,11 +28,12 @@ protected:
     long branch_id;
 
 public:
-    // ---------- constructor & destructor ----------
+    // ---------- CONSTRUCTOR & DESTRUCTOR ----------
     Staff(const std::string &id, const std::string &password);
-    virtual ~Staff(){};
 
-    // ---------- static methods ----------
+    virtual ~Staff(){ /*std::cout << "~Staff()";*/ }
+
+    // ---------- STATIC METHODS ----------
     /** *******************************************************************************************************
      * @brief staff login operation.
      * It validates id password of staff from json file,
@@ -44,7 +45,9 @@ public:
      ******************************************************************************************************* */
     static Staff* login(const std::string &id, const std::string &password);
 
-    // ---------- normal methods ----------
+    // ---------- OTHER METHODS ----------
+    bool isValid();
+
     virtual void displayPanel();
     void displayStaffDetails();
     void updateAccountDetails();

@@ -44,7 +44,10 @@ public:
      * ******************************************/
     Admin(const std::string &id, const std::string &password);
 
-    // ---------- static methods ----------
+    ~Admin(){ /*std::cout << "~Admin()";*/ }
+
+
+    // ---------- STATIC METHODS ----------
     /** **************************************************************
      * @brief handles the login operation of the admin.
      * @param userid of the admin.

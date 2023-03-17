@@ -37,20 +37,17 @@ AccountHolder::AccountHolder(const string &accountHolderId, const string &passwo
 
 // ------- STATIC METHODS -------
 AccountHolder * AccountHolder::login(const string &id, const string &password){
-    unique_ptr<AccountHolder> accountHolder = NULL;
     try {
-        json accountHolder = readData("account_holder", id);
+        unique_ptr<AccountHolder> accountHolder(new AccountHolder(id, password));
 
-        if(accountHolder.empty()) // user not found
-            throw ERROR_USER::USER_NOT_FOUND;
-        else if (password != accountHolder["password"]) // invalid password
-            throw ERROR_USER::INVALID_PASSWORD;
-        else // all is ok
-            return new AccountHolder(id, password);
+        if(accountHolder->isValid()){ // userid and password is valid
+            return accountHolder.release();
+        } else {
+            throw INVALID_USER;
+        }
     }
     catch (const ERROR_USER &error) {
-        if (error == USER_NOT_FOUND) cout << "\n ERROR: " << errmsg::USER_NOT_FOUND << endl;
-        else if (error == INVALID_PASSWORD) cout << "\n ERROR: " << errmsg::INVALID_PASSWORD << endl;
+        cout << "\n ERROR: " << errmsg::INVALID_USER << endl;
     }
     catch (const exception &error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
@@ -90,8 +87,10 @@ string AccountHolder::createAccountHolder(const std::string &name,
 }
 
 // ------- OTHER METHODS -------
+bool AccountHolder::isValid(){ return  this->isUserValid; }
+
 void AccountHolder::displayPanel(){
-    if(!isUserValid) throw INVALID_USER_OBJECT;
+    if(!isUserValid) throw INVALID_USER;
 
     try {
         short choice = 1;

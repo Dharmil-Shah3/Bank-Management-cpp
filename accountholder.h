@@ -29,17 +29,18 @@ private:
     std::vector<std::string> bankAccounts;
 
 public:
-    // ---------- Constructor & Destructor ----------
+    // ---------- CONSTRUCTOR & DESTRUCTOR ----------
     AccountHolder(const std::string &accountHolderId, const std::string &password);
 
-    // ---------- Static Methods ----------
+    // ---------- STATIC METHODS ----------
     static AccountHolder* login(const std::string &id, const std::string &password);
     static std::string createAccountHolder(const std::string &name,
                                            const std::string &mobile,
                                            const std::string &address,
                                            const std::string &password);
 
-    // ---------- Util Methods ----------
+    // ---------- OTHER METHODS ----------
+    bool isValid();
     void displayPanel();
 };
 

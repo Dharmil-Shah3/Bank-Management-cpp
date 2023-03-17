@@ -17,7 +17,7 @@ Account::Account(const unsigned long int &accountNumber)
             this->accountHolderId = data["account_holder_id"];
             this->type = data["type"];
         } else { // account NOT found
-            throw BANK_ACC_NOT_FOUND;
+            throw ACC_NOT_FOUND;
         }
     } catch (const ERROR_BANK_ACCOUNT &error) {
         throw error;
@@ -32,7 +32,7 @@ void Account::displayAccountDetails(const unsigned long int &accountNumber)
     json data = readData("account", to_string(accountNumber));
     try {
         if (data.empty()){ // if account not found
-            throw BANK_ACC_NOT_FOUND;
+            throw ACC_NOT_FOUND;
         }
         else {
             string type = data["type"];
@@ -147,7 +147,7 @@ void Account::removeAccount(const unsigned long int &accountNumber, const string
             }
         }
         else { // if account not found
-            throw BANK_ACC_NOT_FOUND;
+            throw ACC_NOT_FOUND;
         }
     } catch (const ERROR_BANK_ACCOUNT &error) {
         throw error;
