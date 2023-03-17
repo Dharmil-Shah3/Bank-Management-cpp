@@ -18,8 +18,8 @@ string utils::padLeft(std::string &str, const unsigned int &totalLength, const c
 }
 
 void utils::displayCustomErrorMessage(const string &functionName,
-                                      const string &fileName,
-                                      const string &message)
+                                             const string &fileName,
+                                             const string &message)
 {
     cerr << "\n ERROR: " << message << endl
          << "\t- in function -> " << functionName << endl
@@ -159,19 +159,17 @@ json utils::readLogs(const unsigned short &key1, const unsigned short &key2,
         json data = json::parse(fin);
         fin.close();
 
-        if(key1 == 0) return data;
+        if(key1 == 0)      return data;
         else if(key2 == 0) return data[to_string(key1)];
         else if(key3 == 0) return data[to_string(key1)][to_string(key2)];
         else if(key4 == 0) return data[to_string(key1)][to_string(key2)][to_string(key3)];
-        else return data[to_string(key1)][to_string(key2)][to_string(key3)][to_string(key4)];
-    }
-    catch (const string &error) {
+        else               return data[to_string(key1)][to_string(key2)][to_string(key3)][to_string(key4)];
+
+    } catch (const string &error) {
         cerr << "\n ERROR: " << error << endl;
-    }
-    catch (const exception &error) {
+    } catch (const exception &error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
-    }
-    catch (...) {
+    } catch (...) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
     return NULL;

@@ -6,31 +6,41 @@
 #include "utils.h"
 #include "bankerror.h"
 
+/** ******************************************************
+ * @class AccountHolder
+ * @brief Class represents the Account holder of the bank.
+ ********************************************************/
 class AccountHolder
 {
 private:
-    // data members
-    long int id;
+    /** *************************************************************************
+     * @brief isUserValid tells if given userid and password is valid or not.
+     * Main objective of it, is to prevent unauthorised access to the class.
+     * All the public non static methods use this flag,
+     * to determine wether current object is valid or not.
+     * During construction, If user found in the database and password is valid,
+     * then it will be set true, else this will set to false.
+     ****************************************************************************/
+    bool isUserValid;
+    std::string id;
     std::string name;
     std::string mobile;
     std::string address;
     std::vector<std::string> bankAccounts;
 
 public:
-    // constructor & destructor
-    AccountHolder(const long int &accountHolderId);
+    // ---------- Constructor & Destructor ----------
+    AccountHolder(const std::string &accountHolderId, const std::string &password);
 
-    // static methods
-    static long int createAccountHolder(const std::string &name, const std::string &mobile, const std::string &address);
+    // ---------- Static Methods ----------
+    static AccountHolder* login(const std::string &id, const std::string &password);
+    static std::string createAccountHolder(const std::string &name,
+                                           const std::string &mobile,
+                                           const std::string &address,
+                                           const std::string &password);
 
-    // getter methods
-    long int getId();
-    std::string getName();
-    std::string getAddress();
-    std::string getMobile();
-
-    // util methods
-    void displayAccountHolderPanel();
+    // ---------- Util Methods ----------
+    void displayPanel();
 };
 
 #endif // ACCOUNTHOLDER_H

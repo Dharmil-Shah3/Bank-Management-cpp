@@ -11,21 +11,17 @@ Account::Account(const unsigned long int &accountNumber)
 {
     try {
         json data = readData("account", to_string(accountNumber));
-        if(!data.empty()){
-            // if account found, initializing data from json file
+        if(!data.empty()){ // account found
             this->accountNumber = accountNumber;
             this->balance = data["balance"];
             this->accountHolderId = data["account_holder_id"];
             this->type = data["type"];
-        } else {
-            // if account NOT found
-            throw ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND;
+        } else { // account NOT found
+            throw BANK_ACC_NOT_FOUND;
         }
     } catch (const ERROR_BANK_ACCOUNT &error) {
-        this->~Account();
         throw error;
     } catch (const exception &error) {
-        this->~Account();
         throw error; // rethrowing error to caller function
     }
 }
@@ -36,7 +32,7 @@ void Account::displayAccountDetails(const unsigned long int &accountNumber)
     json data = readData("account", to_string(accountNumber));
     try {
         if (data.empty()){ // if account not found
-            throw ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND;
+            throw BANK_ACC_NOT_FOUND;
         }
         else {
             string type = data["type"];
@@ -53,7 +49,9 @@ void Account::displayAccountDetails(const unsigned long int &accountNumber)
     }
 }
 
-long int Account::createNewAccount(const unsigned long int &accountHolderId, const unsigned long int &balance, const string &type)
+long int Account::createNewAccount(const string &accountHolderId,
+                                   const unsigned long int &balance,
+                                   const string &type)
 {
     long int accountNumber;
     try {
@@ -67,8 +65,8 @@ long int Account::createNewAccount(const unsigned long int &accountHolderId, con
         json data = readData();
 
         // account holder not found
-        if(! data["account_holder"].contains(to_string(accountHolderId))){
-            throw ERROR_ACCOUNT_HOLDER::ACC_HOLDER_NOT_FOUND;
+        if(! data["account_holder"].contains(accountHolderId)){
+            throw USER_NOT_FOUND;
         }
 
         // getting count of accounts to get new account id
@@ -78,7 +76,7 @@ long int Account::createNewAccount(const unsigned long int &accountHolderId, con
         data["account"] += json::object_t::value_type(to_string(accountNumber), newAccount);
 
         // adding bank account numbre into account holder's object for reference
-        data["account_holder"][to_string(accountHolderId)]["bank_accounts"].push_back(to_string(accountNumber));
+        data["account_holder"][accountHolderId]["bank_accounts"].push_back(to_string(accountNumber));
 
         // writing data to json file
         updateData(data);
@@ -87,7 +85,7 @@ long int Account::createNewAccount(const unsigned long int &accountHolderId, con
     }
     catch (const ERROR_BANK_ACCOUNT &error) {
         throw error;
-    } catch (const ERROR_ACCOUNT_HOLDER &error) {
+    } catch (const ERROR_USER &error) {
         throw error;
     } catch (const exception &error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
@@ -142,18 +140,18 @@ void Account::removeAccount(const unsigned long int &accountNumber, const string
                             throw "BANK ACCOUNT IS NOT REMOVED CORRECTLY, VERIFY AND TRY AGAIN...";
                     }
                     else {
-                        throw ERROR_STAFF::INVALID_PASSWORD;
+                        throw INVALID_PASSWORD;
                     }
                     break;
                 default: cout << "\n => Please enter 0 or 1" << endl;
             }
         }
         else { // if account not found
-            throw ERROR_BANK_ACCOUNT::BANK_ACC_NOT_FOUND;
+            throw BANK_ACC_NOT_FOUND;
         }
     } catch (const ERROR_BANK_ACCOUNT &error) {
         throw error;
-    } catch (const ERROR_STAFF &error) {
+    } catch (const ERROR_USER &error) {
         throw error;
     } catch (const char* error) {
         throw error;
@@ -185,7 +183,7 @@ void Account::withdraw(const unsigned long int &amount, const std::string &staff
     try {
         if(this->balance < amount){ //  insufficient balance
             cout << "\n => Available Balance is " << this->balance << endl;
-            throw ERROR_BANK_ACCOUNT::INSUFFICIENT_BALANCE;
+            throw INSUFFICIENT_BALANCE;
         }
 
         // reading data from json file
@@ -200,7 +198,7 @@ void Account::withdraw(const unsigned long int &amount, const std::string &staff
         writeWithdrawDepositeLog(BANK_LOG_TYPES::WITHDRAW, this->accountNumber, amount, staffId);
 
         this->balance -= amount;
-        cout << "\n => Rs." << amount << " is Debited from account_number " << this->accountNumber << endl
+        cout << "\n => Rs." << amount << " is Debited from account-number " << this->accountNumber << endl
              << " => Current Available balance is Rs." << this->balance << endl;
     } catch (const ERROR_BANK_ACCOUNT &error){
         throw error;

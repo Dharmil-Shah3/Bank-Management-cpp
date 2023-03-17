@@ -11,10 +11,11 @@ void handleBankLogin(const BANK_USER_ROLES & role);
 int main()
 {
     try {
-        short choice;
+        unsigned short choice;
         BANK_USER_ROLES role;
 
         while(true){
+            system("clear");
             cout << "\n=-=-=-=-=-= LOGIN =-=-=-=-=-=\n" << endl;
             cout << "  1) Admin" << endl;
             cout << "  2) Staff" << endl;
@@ -29,6 +30,7 @@ int main()
                 case 3: role = ACCOUNT_HOLDER; break;
                 default:
                     cout << "\n  ERROR: INPUT IN RANGE 0-2" << endl;
+                    getchar(); getchar();
                     continue;
             }
             handleBankLogin(role);
@@ -55,31 +57,9 @@ int main()
 void handleBankLogin(const BANK_USER_ROLES &role)
 {
     system("clear");
-
-    Staff *user = NULL; // for staff & admin login
-    short failedLoginCount = 1;
-
     try {
-    while(1){
-        // if inputs are invalid 3 times
-        while(failedLoginCount > 3){
-            short choice;
-            cout << "\n ========== 3 Failed Login Attempts ==========" << endl;
-            cout << "\n 1) Retry" << endl;
-            cout << " 0) EXIT" << endl;
-            scanNumber(choice, " Enter choice: ");
-
-            switch (choice) {
-                case 0: system("clear");
-                    delete user;
-                    return;
-                case 1:
-                    failedLoginCount = 1;
-                    break;
-                default:
-                    cout << "\n => Invalid choice !" << endl;
-            }
-        }
+        unique_ptr <Staff>         staff     = NULL;
+        unique_ptr <AccountHolder> accHolder = NULL;
 
         string userid, password;
         cout << "\n----------- "
@@ -92,27 +72,22 @@ void handleBankLogin(const BANK_USER_ROLES &role)
         cin >> password;
 
         switch (role) {
-            case ADMIN: user = Admin::login(userid, password); break;
-            case STAFF: user = Staff::login(userid, password); break;
-            case ACCOUNT_HOLDER:
-                cout << "\n ERROR: work in progress..." << endl;
-                delete user;
-                return;
-            default: cout << "\n ERROR: INVALID LOGIN CHOICE" << endl;
+            case ADMIN: staff.reset(Admin::login(userid, password)); break;
+            case STAFF: staff.reset(Staff::login(userid, password)); break;
+            case ACCOUNT_HOLDER: accHolder.reset(AccountHolder::login(userid, password)); break;
         }
-
-        if(user == NULL){ // if login credentials are invalid
-            failedLoginCount++;
-            continue;   // retry
+        if(staff){
+            staff->displayPanel();   // display panel(staff/admin) on successfull login
+            return;
+        } else if (accHolder){
+            accHolder->displayPanel();
+            return;
         }
-
-        user->displayPanel();   // display panel(staff/admin) on successfull login
-        delete user;            // delete pointer before leaving function
-        break;                  // because operation is done and user is logged out
-    }
     } catch (const exception &error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
     } catch (...) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
+    getc(stdin);
+    getc(stdin);
 }

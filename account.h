@@ -21,7 +21,7 @@ public:
     // ====== static methods ======
     static long int getLastAccountNumber();
     static void displayAccountDetails(const unsigned long int &accountNumber);
-    static long int createNewAccount(const unsigned long int &accountHolderId, const unsigned long int &balance, const std::string &type);
+    static long int createNewAccount(const std::string &accountHolderId, const unsigned long int &balance, const std::string &type);
     static void removeAccount(const unsigned long int &accountNumber, const std::string &staffId);
 
     // ====== getter methods ======

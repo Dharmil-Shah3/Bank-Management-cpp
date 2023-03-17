@@ -94,7 +94,7 @@ namespace utils
                         const char &paddingCharacter = ' ');
 
     /** *************************************************************************************
-     * @brief displayCustomErrorMessage displays the common error message in the system.
+     * @brief displays the common & customized error message.
      * @param functionName contains the name of the function in which the error has occurred.
      * @param fileName is the name of the source file in which the exception has occurred.
      * @param message is the error description. Default value is "Unhandled Exception".

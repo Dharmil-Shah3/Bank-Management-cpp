@@ -7,44 +7,36 @@ using namespace bankerror;
 using json = nlohmann::json;
 
 // ------- CONSTRUCTOR -------
-Admin::Admin(const string &adminId, const string &password) : Staff(adminId, password)
+Admin::Admin(const string &id, const string &password) : Staff(id, password)
 {
-    try {
-        if (!isAdmin(adminId)){ //  if its not an admin
-            throw ERROR_STAFF::NOT_AN_ADMIN;
-        }
-    } catch (const ERROR_STAFF &error) {
-        this->~Admin();
-        throw error;
-    } catch (const exception &error){
-        this->~Admin();
-        throw error;
-    } catch (...) {
-        this->~Admin();
-        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
+    if(isUserValid && !isAdmin(id)){ // if staff is not an admin
+        isUserValid = false;
     }
 }
 
 // ------- STATIC METHODS -------
 Admin* Admin::login(const string &userid, const string &password)
 {
-    Admin *admin = NULL;
     try {
-        admin = new Admin(userid, password);
-        return admin;
-    }
-    catch (const ERROR_STAFF & error) {
-        switch (error) {
-            case ERROR_STAFF::STAFF_NOT_FOUND:
-                cerr << "\n ERROR: " << errmsg::STAFF_NOT_FOUND << endl;
-                break;
-            case ERROR_STAFF::INVALID_PASSWORD:
-                cerr << "\n ERROR: " << errmsg::INVALID_PASSWORD << endl;
-                break;
-            case ERROR_STAFF::NOT_AN_ADMIN:
-                cout << "\n ERROR: " << errmsg::NOT_AN_ADMIN << endl;
-                break;
+        json staff = readData("staff", userid);
+
+        if (staff.empty()){ // user not found
+            throw USER_NOT_FOUND;
         }
+        else if (password != staff["password"]){ // invalid password
+            throw INVALID_PASSWORD;
+        }
+        else if (!isAdmin(userid)){ // if its not an admin
+            throw NOT_AN_ADMIN;
+        }
+        else { // all is ok
+            return new Admin(userid, password);
+        }
+    }
+    catch (const ERROR_USER & error) {
+        if (error == USER_NOT_FOUND)        cerr << "\n ERROR: " << errmsg::USER_NOT_FOUND << endl;
+        else if (error == INVALID_PASSWORD) cerr << "\n ERROR: " << errmsg::INVALID_PASSWORD << endl;
+        else if (error == NOT_AN_ADMIN)     cerr << "\n ERROR: " << errmsg::NOT_AN_ADMIN << endl;
     }
     catch (const exception & error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
@@ -52,7 +44,6 @@ Admin* Admin::login(const string &userid, const string &password)
     catch (...) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
-    delete admin;
     return NULL;
 }
 
@@ -70,22 +61,6 @@ bool Admin::isAdmin(const string &id)
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
     return false;
-}
-
-void Admin::displayStaffDetails(const std::string &staffId)
-{
-    try {
-        json staff = readData("staff", staffId);
-        if(!staff.empty()){
-            Staff(staffId, staff["password"]).displayStaffDetails();
-        } else {
-            cerr << "\n ERROR: " << errmsg::STAFF_NOT_FOUND << endl;
-        }
-    } catch (const exception &error) {
-        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
-    } catch (...) {
-        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
-    }
 }
 
 // ------- PRIVATE METHODS -------
@@ -148,13 +123,17 @@ void Admin::displayWithdrawDepositLogs(const json &dateLogs, const string &month
     try {
         for(auto &transaction: dateLogs.items()){
             json value = transaction.value();
+
             transactionType = to_string(value["type"]);
-            transactionType = transactionType.substr(1, transactionType.length()-2);
+            trim(transactionType, "\"");
+
             staffId = to_string(transaction.value()["staff_id"]);
+            trim(staffId, "\"");
+
+            // getting last index of leading zeros in transaction id
+            // to remove it for display properly.
             int lastIndexOfZero = transaction.key().find_first_not_of('0');
             string transactionId = transaction.key().substr(lastIndexOfZero);
-
-            staffId = staffId == "\"\""? "": staffId.substr(1,8);
 
             cout << "| " << setw(8) << transactionId << " "
                  << "| " << setw(8) << transactionType << " "
@@ -173,15 +152,18 @@ void Admin::displayWithdrawDepositLogs(const json &dateLogs, const string &month
     }
 }
 
-// ------- UTIL METHODS -------
+// ------- OTHER METHODS -------
 void Admin::displayPanel()
 {
+    if(!isUserValid) throw INVALID_USER_OBJECT;
+
     short choice = 1;
     string input; // for scan staff id and name
     system("clear");
 
     try {
         while(choice != 0){
+            system("clear");
             cout << "\n ----------- ADMIN PANEL -----------\n" << endl;
             cout << " 1) Display Your Details " << endl;
             cout << " 2) Update Your Info" << endl;
@@ -198,6 +180,7 @@ void Admin::displayPanel()
                 case 0: system("clear"); return;
                 case 1:
                     Staff::displayStaffDetails();
+                    getc(stdin);
                     getc(stdin);
                     break;
                 case 2: this->updateAccountDetails(); break;
@@ -224,8 +207,27 @@ void Admin::displayPanel()
     system("clear");
 }
 
+void Admin::displayStaffDetails(const std::string &staffId)
+{
+    /// @todo refactor this function with isUserValid
+    try {
+        json staff = readData("staff", staffId);
+        if(staff.empty()){
+            cerr << "\n ERROR: " << errmsg::USER_NOT_FOUND << endl;
+        } else {
+            Staff(staffId, staff["password"]).displayStaffDetails();
+        }
+    } catch (const exception &error) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
+    } catch (...) {
+        displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
+    }
+}
+
 void Admin::displayLogs()
 {
+    if(!isUserValid) throw INVALID_USER_OBJECT;
+
     system("clear");
     unsigned short choice;
     cout << "\n ---------- SELECT LOG TYPE ----------\n" << endl
@@ -248,7 +250,9 @@ void Admin::displayLogs()
 
 void Admin::displayWithdrawDepositLogsByDate()
 {
-    json logs, tempLog = NULL;
+    if(!isUserValid) throw INVALID_USER_OBJECT;
+
+    json newLogs, oldLogs = NULL;
     unsigned short year, month, date;
 
     system("clear");
@@ -279,12 +283,12 @@ void Admin::displayWithdrawDepositLogsByDate()
     system("clear");
     while(!kbhit()){ // showing logs until any key is pressed from keyboard
 
-        logs = readLogs(year, month, date);
+        newLogs = readLogs(year, month, date);
 
-        if(logs != tempLog){ // display logs only if there is any change in logs
+        if(newLogs != oldLogs){ // display logs only if there is any change
             system("clear");
 
-            if(logs.empty()){
+            if(newLogs.empty()){
                 cout << "\n => NO LOGS FOUND FOR "<<year<<"/"<<month<<"/"<<date<<" !" << endl;
                 return;
             }
@@ -294,26 +298,31 @@ void Admin::displayWithdrawDepositLogsByDate()
             cout << "\n| Trans_Id |   Desc   | Bank Account Id | Amount(Rs) | Staff id |  M/D  |   Time   |" << endl
                  << "-------------------------------------------------------------------------------------" << endl;
 
-            this->displayWithdrawDepositLogs(logs, to_string(month), to_string(date)); // displaying logs
+            this->displayWithdrawDepositLogs(newLogs, to_string(month), to_string(date)); // displaying logs
 
             cout << "-------------------------------------------------------------------------------------" << endl
                  << "\n=> Press any key to exit..." << endl;
         }
 
-        tempLog = logs; // copiying value of logs to compare in the next iteration
+        oldLogs = newLogs; // copiying value of logs to compare in the next iteration
 
         sleep(1); // sleep for 1 second
+
     } // end while
-    } catch (const exception &error) {
+    } // end try
+    catch (const exception &error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
-    } catch (...) {
+    }
+    catch (...) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
 void Admin::displayWithdrawDepositLogsByMonth()
 {
-    json logs, tempLog = NULL;
+    if(!isUserValid) throw INVALID_USER_OBJECT;
+
+    json newLogs, oldLogs = NULL;
     unsigned short year, month;
 
     // getting the year and month from user to display logs of that month
@@ -344,12 +353,12 @@ void Admin::displayWithdrawDepositLogsByMonth()
 
     while(!kbhit()){ // showing logs until any key is pressed from keyboard
 
-        logs = readLogs(year, month);
+        newLogs = readLogs(year, month);
 
-        if(logs != tempLog){ // display logs only if there is any change in logs
+        if(newLogs != oldLogs){ // display logs only if there is any change in logs
             system("clear");
 
-            if(logs.empty()){
+            if(newLogs.empty()){
                 cout << "\n => NO LOGS FOUND FOR "<<year<<"/"<<month << endl;
                 return;
             }
@@ -359,7 +368,7 @@ void Admin::displayWithdrawDepositLogsByMonth()
             cout << "\n| Trans_Id |   Desc   | Bank Account Id | Amount(Rs) | Staff id |  M/D  |   Time   |" << endl
                  << "-------------------------------------------------------------------------------------" << endl;
 
-            for(auto &date: logs.items()){ // displaying logs
+            for(auto &date: newLogs.items()){ // displaying logs
                 string day = date.key();
                 this->displayWithdrawDepositLogs(date.value(), to_string(month), day); // displaying logs
             }
@@ -368,20 +377,25 @@ void Admin::displayWithdrawDepositLogsByMonth()
                  << "\n=> Press any key to exit..." << endl;
         }
 
-        tempLog = logs; // copiying value of logs to compare in the next iteration
+        oldLogs = newLogs; // copiying value of logs to compare in the next iteration
 
         sleep(1); // sleep for 1 second
+
     } // end while
-    } catch (const exception &error) {
+    } // end try
+    catch (const exception &error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
-    } catch (...) {
+    }
+    catch (...) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
 void Admin::displayWithdrawDepositLogsByYear()
 {
-    json logs, tempLog = NULL;
+    if(!isUserValid) throw INVALID_USER_OBJECT;
+
+    json newLogs, oldLogs = NULL;
     unsigned short year;
 
     system("clear");
@@ -391,6 +405,7 @@ void Admin::displayWithdrawDepositLogsByYear()
     scanNumber(year ," Enter year: ");
 
     try {
+
     time_t now = time(0);
     tm *currentTime = localtime(&now);
 
@@ -411,11 +426,11 @@ void Admin::displayWithdrawDepositLogsByYear()
 
     while(! kbhit()){ // showing logs until any key is pressed from keyboard
 
-        logs = readLogs(year);
-        if(logs != tempLog){ // display logs only if there is any change in logs
+        newLogs = readLogs(year);
+        if(newLogs != oldLogs){ // display logs only if there is any change
             system("clear");
 
-            if(logs.empty()){
+            if(newLogs.empty()){
                 cout << "\n => NO LOGS FOUND FOR " << year << " !" << endl;
                 return;
             }
@@ -423,7 +438,7 @@ void Admin::displayWithdrawDepositLogsByYear()
             cout << "\n| Trans_Id |   Desc   | Bank Account Id | Amount(Rs) | Staff id |  M/D  |   Time   |" << endl
                  << "------------------------------------------------------------------------------------" << endl;
 
-            for(auto &monthLogs: logs.items()){
+            for(auto &monthLogs: newLogs.items()){
                 string month = monthLogs.key();
                 for(auto dateLogs: monthLogs.value().items()){
                     string date = dateLogs.key();
@@ -435,28 +450,35 @@ void Admin::displayWithdrawDepositLogsByYear()
                  << "\n=> Press any key to exit...";
         }
 
-        tempLog = logs; // copiying value of logs to compare in the next iteration
+        oldLogs = newLogs; // copiying value of logs to compare in the next iteration
 
         sleep(1); // sleep for 1 second
+
     } // end while
-    } catch(const string &error) {
+    } // end try
+    catch(const string &error) {
         cout << "ERROR: " << error << endl;
-    } catch (const exception &error) {
+    }
+    catch (const exception &error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
-    } catch (...) {
+    }
+    catch (...) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__);
     }
 }
 
 void Admin::searchStaffDetailsByName(string &inputName)
 {
+    if(!isUserValid) throw INVALID_USER_OBJECT;
+
     try {
 
     json allStaff = readData("staff");
     trim(inputName);
+    if(inputName.length() < 3) throw "Name must be atleast 3 characters long";
     transform(inputName.begin(), inputName.end(), inputName.begin(), ::tolower);
-    unsigned short recordsFound = 0;
 
+    unsigned short recordsFound = 0;
     string name;
     string designation;
     string email;
@@ -491,6 +513,7 @@ void Admin::searchStaffDetailsByName(string &inputName)
         cout << " -------------------------------------------------------------------------------------------------------------" << endl
              << "\n => TOTAL RECORDS FOUND: " << recordsFound << endl;
     } else {
+        system("clear");
         throw "NO STAFF FOUND WITH THE GIVEN NAME OR SURNAME";
     }
     } // end of try
@@ -507,6 +530,8 @@ void Admin::searchStaffDetailsByName(string &inputName)
 
 void Admin::updateStaffDetails(const string &staffId)
 {
+    if(!isUserValid) throw INVALID_USER_OBJECT;
+
     try {
         json data = readData();
 
@@ -560,7 +585,10 @@ void Admin::updateStaffDetails(const string &staffId)
                         ( fieldToUpdate=="password" && ! isPasswordValid(newValue) ) ||
                         ( fieldToUpdate=="mobile"   && ! isMobileValid(newValue) )   ||
                         ( fieldToUpdate=="email"    && ! isEmailValid(newValue) ))
-                    { return; }
+                    {
+                        getc(stdin);
+                        return;
+                    }
                     updateData(data, data["staff"][staffId][fieldToUpdate], newValue);
                 }
                 else { // invalid menu choice
@@ -571,11 +599,11 @@ void Admin::updateStaffDetails(const string &staffId)
             } // end of while(1)
         }
         else {
-            throw ERROR_STAFF::STAFF_NOT_FOUND;
+            throw USER_NOT_FOUND;
         }
     }
-    catch (const ERROR_STAFF &error) {
-        cerr << "\n ERROR: " << errmsg::STAFF_NOT_FOUND << endl;
+    catch (const ERROR_USER &error) {
+        cerr << "\n ERROR: " << errmsg::USER_NOT_FOUND << endl;
     } catch (const exception &error) {
         displayCustomErrorMessage(__PRETTY_FUNCTION__, __FILE__, error.what());
     } catch (...) {
@@ -586,6 +614,8 @@ void Admin::updateStaffDetails(const string &staffId)
 
 void Admin::addStaff()
 {
+    if(!isUserValid) throw INVALID_USER_OBJECT;
+
     string name, address, email, mobile, designation, password;
     int salary, branch_id;
 
@@ -619,7 +649,8 @@ void Admin::addStaff()
         {
             // push the data into JSON file
             json data = readData();
-            json newStaff = {
+            json newStaff =
+            {
                 {"address", address},
                 {"branch_id", branch_id},
                 {"designation", designation},
@@ -630,27 +661,27 @@ void Admin::addStaff()
                 {"salary", salary},
             };
 
-            // creating staff-id for new staff member.
-            int staffNumber = data["last_staff_number"];
-            staffNumber++;
+            // ------ creating staff-id for new staff member ------
+            unsigned int lastStaffNumber = data["last_staff_number"];
+            lastStaffNumber++;
 
-            string staffId = "bank"; // adding prefix 'bank' to userid, so it will look like 'bank0001'
+            string newStaffId;
 
-            ostringstream staffIdWithLeadindZeors;
-            if(staffNumber <= 9999){ // adding leading zeros to new staff id
-                staffId += to_string(staffNumber);
-                staffIdWithLeadindZeors << setw(4) << setfill('0') << to_string(staffNumber);
+            if(lastStaffNumber <= 9999){
+                // adding leading zeros to new staff id
+                string temp = to_string(lastStaffNumber);
+                newStaffId = "bank" + padLeft(temp, 4, '0');
             }
-            else {
+            else { // 9999 is the staff limit
                 throw "STAFF LIMIT OUT OF BOUND";
             }
 
-            data["staff"].push_back(json::object_t::value_type(staffIdWithLeadindZeors.str(), newStaff));
-            data["last_staff_number"] = staffNumber;
+            data["staff"].push_back(json::object_t::value_type(newStaffId, newStaff));
+            data["last_staff_number"] = lastStaffNumber;
             updateData(data);
 
             cout << "\n => NEW STAFF ADDED SUCCESSFULLY..." << endl;
-            displayStaffDetails(staffId);
+            displayStaffDetails(newStaffId);
         }
     } catch (const char *error) {
         cerr << "\n ERROR: " << error << endl;
@@ -663,6 +694,8 @@ void Admin::addStaff()
 
 void Admin::removeStaff()
 {
+    if(!isUserValid) throw INVALID_USER_OBJECT;
+
     string staffIdToRemove;
 
     try {
@@ -706,10 +739,10 @@ void Admin::removeStaff()
             }
         }
         else {
-            throw ERROR_STAFF::STAFF_NOT_FOUND;
+            throw USER_NOT_FOUND;
         }
-    } catch (const ERROR_STAFF &error) {
-        cerr << "\n ERROR: " << errmsg::STAFF_NOT_FOUND << endl;
+    } catch (const ERROR_USER &error) {
+        cerr << "\n ERROR: " << errmsg::USER_NOT_FOUND << endl;
     } catch (const char *error) {
         cerr << "\n ERROR: " << error << endl;
     } catch (const exception &error){

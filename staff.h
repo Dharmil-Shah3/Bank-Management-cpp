@@ -9,6 +9,15 @@
 
 class Staff {
 protected:
+    /** *****************************************************************************
+     * @brief isUserValid tells if given staff id is valid or not.
+     * Main objective of it, is to prevent unauthorised access to class.
+     * All the methods of Staff and Admin class will use this flag,
+     * to determine wether current object of staff is valid or not.
+     * During construction, If staff found in the database, then it will be set true.
+     * else this will set to false.
+    ********************************************************************************/
+    bool isUserValid;
     std::string id;
     std::string name;
     std::string address;
@@ -34,14 +43,13 @@ public:
      * @return Pointer of a new Staff object OR NULL.
      ******************************************************************************************************* */
     static Staff* login(const std::string &id, const std::string &password);
-    static void displayStaffDetails(const std::string &staffId);
 
     // ---------- normal methods ----------
     virtual void displayPanel();
     void displayStaffDetails();
     void updateAccountDetails();
 
-    long int createAccountHolder();
+    std::string createAccountHolder();
     void createBankAccount();
     void removeBankAccount();
     void displayBankAccountDetails();
